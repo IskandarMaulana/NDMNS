@@ -1,0 +1,234 @@
+/* Main Layout Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    background-color: #e9ecef;
+}
+
+.sidebar {
+    width: 200px;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #031633;
+    color: #fff;
+    padding-top: 20px;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+    .sidebar img {
+        width: 70%;
+        margin-bottom: 20px;
+    }
+
+    .sidebar .nav-link {
+        color: #adb5bd;
+        padding: 10px 15px;
+        display: flex;
+        align-items: center;
+        transition: all 0.3s;
+    }
+
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
+        .sidebar .nav-link.active,
+        .sidebar .nav-link:hover {
+            color: #fff;
+            background-color: #062c5e;
+        }
+
+.navbar-custom {
+    background-color: #ffc107;
+    /*    margin-left: 200px;*/
+    padding: 10px 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+    .navbar-custom .nav-link {
+        color: #333;
+        font-weight: 500;
+        padding: 8px 16px;
+    }
+
+        .navbar-custom .nav-link:hover {
+            color: #000;
+        }
+
+.content {
+    /*    margin-left: 200px;*/
+    padding: 15px;
+    flex-grow: 1;
+}
+
+/* Network Monitor Specific Styles */
+.network-container {
+    width: 100%;
+}
+
+/* Modified for compact card display */
+.row.g-3 {
+    --bs-gutter-y: 0.5rem;
+    --bs-gutter-x: 0.5rem;
+}
+
+.network-card {
+    display: flex;
+    border-radius: 10px;
+    padding: 5px;
+    margin-bottom: 5;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    background-color: white;
+    transition: transform 0.2s, box-shadow 0.2s;
+    height: 100%;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-height: 100px; /* Smaller fixed height */
+}
+
+    .network-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 3px 6px rgba(0,0,0,0.12);
+    }
+
+.site-heading {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-top: 0;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.server-icon {
+    margin-bottom: 5px;
+}
+
+    .server-icon i {
+        font-size: 2rem !important; /* Force smaller icon size */
+    }
+
+.network-info {
+    width: 100%;
+}
+
+.status-text {
+    font-weight: 500;
+    margin-bottom: 2px;
+    font-size: 0.8rem;
+}
+
+.network-stats {
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.last-update {
+    font-size: 0.8rem;
+    color: #777;
+}
+
+/* Status Colors */
+.online {
+    color: #10b981;
+}
+
+    .online .status-text {
+        color: #10b981;
+    }
+
+.offline {
+    color: #ef4444;
+}
+
+    .offline .status-text {
+        color: #ef4444;
+    }
+
+    .offline.network-card {
+        background-color: #ffefef;
+    }
+
+.intermittent {
+    color: #f59e0b;
+}
+
+    .intermittent .status-text {
+        color: #f59e0b;
+    }
+
+/* Responsive Adjustments */
+@media (max-width: 992px) {
+    .sidebar {
+        width: 60px;
+    }
+
+        .sidebar .nav-link span {
+            display: none;
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 0;
+            font-size: 1.4rem;
+        }
+
+    .content, .navbar-custom {
+        margin-left: 60px;
+    }
+
+    .sidebar img {
+        width: 40px;
+    }
+}
+
+@media (max-width: 576px) {
+    .network-card {
+        padding: 5px;
+    }
+
+    .server-icon {
+        font-size: 1.3rem;
+    }
+
+    .network-info h5 {
+        font-size: 0.8rem;
+    }
+
+    .status-text, .network-stats {
+        font-size: 0.7rem;
+    }
+
+    .last-update {
+        font-size: 0.65rem;
+    }
+}
+
+.compact-xl .network-card {
+    padding: 4px;
+    min-height: 70px;
+}
+
+.compact-xl .site-heading {
+    font-size: 0.75rem;
+    margin-bottom: 1px;
+}
+
+.compact-xl .server-icon i {
+    font-size: 1.3rem !important;
+}
+
+.compact-xl .last-update {
+    font-size: 0.65rem;
+}

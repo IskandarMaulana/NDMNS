@@ -1,0 +1,239 @@
+﻿@{
+    ViewData["Title"] = "Master Data Helpdesk";
+    ViewData["Breadcrumb"] = "<li class='breadcrumb-item'><a href='#'>Home</a></li><li class='breadcrumb-item'><a href='#'>Master Data</a></li><li class='breadcrumb-item active'>Helpdesk</li>";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="clearfix"></div>
+
+<div class="col-sm-12">
+    
+    <div class="mb-3">
+        <a href="javascript:void(0)" class="btn btn-secondary btn-sm" onclick="reset()">
+            <i class="bi bi-arrow-clockwise"></i> Reset
+        </a>
+        @if (ViewBag.IsNOC == true || ViewBag.IsTeamLeader == true)
+        {
+            <a asp-controller="Helpdesk" asp-action="Create" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-circle"></i> Add New Data
+            </a>
+        }
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="table-responsive">
+        <table id="datatable-fixed-header" class="table table-striped table-bordered datatable-fixed-header" style="width:100%">
+            <thead class="table-light">
+                <tr>
+                    <th style="text-align: center;">No.</th>
+                    <th style="text-align: center;">Name</th>
+                    <th style="text-align: center;">ISP</th>
+                    <th style="text-align: center;">Role</th>
+                    <th style="text-align: center;">WhatsApp Number</th>
+                    <th style="text-align: center;">Email Address</th>
+                    <th style="text-align: center;">Action</th>
+                </tr>
+                <tr>
+                    <th></th>
+                    <th>
+                        <input type="text" class="form-control form-control-sm name-input" id="name_filter"
+                                onkeypress="handleKeyPress(event)">
+                    </th>
+                    <th>
+                        <input type="text" class="form-control form-control-sm name-input" id="isp_filter"
+                                onkeypress="handleKeyPress(event)">
+                    </th>
+                    <th>
+                        <select class="form-select form-select-sm" id="role_filter" onchange="search()">
+                            <option value="">All Roles</option>
+                            <option value="Helpdesk">Helpdesk</option>
+                            <option value="Team Leader">Team Leader</option>
+                        </select>
+                    </th>
+                    <th>
+                        <input type="text" class="form-control form-control-sm number-input" id="whatsapp_filter"
+                                onkeypress="handleKeyPress(event)">
+                    </th>
+                    <th>
+                        <input type="text" class="form-control form-control-sm email-input" id="email_filter"
+                                onkeypress="handleKeyPress(event)">
+                    </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int no = 1;
+                }
+                @if (Model != null)
+                {
+                    @foreach (var row in Model)
+                    {
+                        <tr>
+                            <td>@(no++)</td>
+                            <td>@row.Name</td>
+                            <td>@row.IspName</td>
+                            <td>@(row.Role == 1 ? "Customer Account" : row.Role == 2 ? "Supervisor" : row.Role == 3 ? "Manager Customer" : row.Role == 4 ? "General Manager" : "Unknown")</td>
+                            <td>@row.WhatsappNumber</td>
+                            <td>@(row.EmailAddress ?? "-")</td>
+                            <td style="text-align: center; vertical-align: middle;">
+                                <div class="btn-group" role="group">
+                                    @if (ViewBag.IsNOC == true || ViewBag.IsTeamLeader == true)
+                                    {
+                                        <a href="@Url.Action("Update", "Helpdesk", new { id = row.Id })"
+                                            class="btn btn-outline-primary btn-sm"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            title="Update">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+
+                                        <button type="button"
+                                                class="btn btn-outline-danger btn-sm"
+                                                data-bs-toggle="tooltip"
+                                                data-bs-placement="top"
+                                                title="Delete"
+                                                onclick="confirmDelete('@row.Id', '@row.Name')">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Do you want to delete this Helpdesk data?</p>
+                <p><strong id="itemToDelete"></strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <input name="_method" type="hidden" value="DELETE" />
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.bootstrap5.min.css">
+
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
+
+    <script>
+        var dataTable;
+
+        $(document).ready(function () {
+            dataTable = $('#datatable-fixed-header').DataTable({
+                fixedHeader: true,
+                orderCellsTop: true,
+                responsive: true,
+                lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+                scrollCollapse: true,
+                scrollX: true,
+                scrollY: '35vh',
+                columnDefs: [
+                    {
+                        targets: 0,
+                        searchable: false,
+                        orderable: false,
+                        width: '40px',
+                        className: 'dt-body-center',
+                    },
+                    {
+                        targets: 6,
+                        searchable: false,
+                        orderable: false,
+                        width: '140px',
+                        className: 'dt-body-center'
+                    }
+                ],
+                order: [[1, 'asc']],
+            });
+
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+
+        function reset() {
+            $('#name_filter').val('');
+            $('#isp_filter').val('');
+            $('#role_filter').val('');
+            $('#whatsapp_filter').val('');
+            $('#email_filter').val('');
+
+            $('.form-control').removeClass('is-valid');
+            
+            dataTable.search('').columns().search('').draw();
+        }
+
+        function search() {
+            var name = $('#name_filter').val();
+            var isp = $('#isp_filter').val();
+            var whatsapp = $('#whatsapp_filter').val();
+            var email = $('#email_filter').val();
+
+            dataTable.columns(1).search(name);
+            dataTable.columns(2).search(isp);
+            dataTable.columns(3).search(whatsapp);
+            dataTable.columns(4).search(email);
+            dataTable.draw();
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                search();
+            }
+        }
+
+        function confirmDelete(id, name) {
+            $('#itemToDelete').text(name);
+            $('#deleteForm').attr('action', '@Url.Action("Delete", "Helpdesk")/' + id);
+            $('#deleteModal').modal('show');
+        }
+
+        $(document).ready(function() {
+            setTimeout(function() {
+                $('.alert').fadeOut('slow');
+            }, 5000);
+        });
+    </script>
+}

@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+
+    <link rel="icon" type="image/png" href="~/image/logo.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="~/image/logo.png" sizes="16x16" />
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/layout-admin.css" asp-append-version="true" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+
+    <script src="~/js/floating-ui.core.umd.min.js"></script>
+    <script src="~/js/floating-ui.dom.umd.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/3.1.18/signalr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+
+<body>
+    <!-- Enhanced Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="logo-section">
+            <img src="~/image/logo.png" alt="PAMA Logo" />
+            @* <div class="brand-text">NETIFY</div> *@
+            <div class="sub-text">Network Down Management & Notification System</div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <ul class="nav flex-column">
+                <!-- Dashboard -->
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Dashboard" asp-action="Index">
+                        <i class="bi bi-speedometer2"></i>
+                        Dashboard
+                    </a>
+                </li>
+
+                <!-- Network -->
+                @if (ViewBag.IsNOC == true || ViewBag.IsTeamLeader == true)
+                {
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Network" asp-action="Index">
+                            <i class="bi bi-router-fill"></i>
+                            Network
+                        </a>
+                    </li>
+                }
+
+                <!-- Master Site Dropdown -->
+                @if (ViewBag.IsNOC == true || ViewBag.IsTeamLeader == true)
+                {
+                    <li class="nav-item">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="collapse"
+                            data-bs-target="#masterSiteCollapse" aria-expanded="false" aria-controls="masterSiteCollapse">
+                            <i class="bi bi-building"></i>
+                            Master Site
+                            @* <i class="bi bi-chevron-right caret ms-auto"></i> *@
+                        </a>
+                        <div class="collapse" id="masterSiteCollapse">
+                            <ul class="nav flex-column ms-3">
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Site" asp-action="Index">
+                                        <i class="bi bi-geo-alt-fill"></i>
+                                        Site
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Pic" asp-action="Index">
+                                        <i class="bi bi-person-fill-gear"></i>
+                                        PIC
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                }
+
+                <!-- Master ISP Dropdown -->
+                @if (ViewBag.IsNOC == true || ViewBag.IsTeamLeader == true)
+                {
+                    <li class="nav-item">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="collapse"
+                            data-bs-target="#masterIspCollapse" aria-expanded="false" aria-controls="masterIspCollapse">
+                            <i class="bi bi-ethernet"></i>
+                            Master ISP
+                            @* <i class="bi bi-chevron-right caret ms-auto"></i> *@
+                        </a>
+                        <div class="collapse" id="masterIspCollapse">
+                            <ul class="nav flex-column ms-3">
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Isp" asp-action="Index">
+                                        <i class="bi bi-ethernet"></i>
+                                        ISP
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Helpdesk" asp-action="Index">
+                                        <i class="bi bi-person-workspace"></i>
+                                        Helpdesk
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                }
+
+                <!-- Master User & Shift Dropdown -->
+                @if (ViewBag.IsTeamLeader == true)
+                {
+                    <li class="nav-item">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="collapse"
+                            data-bs-target="#masterUserCollapse" aria-expanded="false" aria-controls="masterUserCollapse">
+                            <i class="bi bi-person-bounding-box"></i>
+                            Master User & Shift
+                            @* <i class="bi bi-chevron-right caret ms-auto"></i> *@
+                        </a>
+                        <div class="collapse" id="masterUserCollapse">
+                            <ul class="nav flex-column ms-3">
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="User" asp-action="Index">
+                                        <i class="bi bi-person-circle"></i>
+                                        User
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Shift" asp-action="Index">
+                                        <i class="bi bi-hourglass-split"></i>
+                                        Shift
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                }
+
+
+                <!-- Report Downtime Dropdown -->
+                @* <li class="nav-item">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="collapse"
+                        data-bs-target="#reportDowntimeCollapse" aria-expanded="false"
+                        aria-controls="reportDowntimeCollapse">
+                        <i class="bi bi-wifi-off"></i>
+                        Report Downtime
+                        <i class="bi bi-chevron-right caret ms-auto"></i>
+                    </a>
+                    <div class="collapse" id="reportDowntimeCollapse">
+                        <ul class="nav flex-column ms-3">
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Downtime" asp-action="Index">
+                                    <i class="bi bi-wifi-off"></i>
+                                    Downtime
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Downtime" asp-action="Report">
+                                    <i class="bi bi-file-earmark-text"></i>
+                                    Report Downtime
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li> *@
+
+                <!-- Alert Message Dropdown -->
+                @if (ViewBag.IsNOC == true || ViewBag.IsTeamLeader == true)
+                {
+                    <li class="nav-item">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="collapse"
+                            data-bs-target="#alertMessageCollapse" aria-expanded="false"
+                            aria-controls="alertMessageCollapse">
+                            <i class="bi bi-bell-fill"></i>
+                            Downtime & Message
+                            @* <i class="bi bi-chevron-right caret ms-auto"></i> *@
+                        </a>
+                        <div class="collapse" id="alertMessageCollapse">
+                            <ul class="nav flex-column ms-3">
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Downtime" asp-action="Index">
+                                        <i class="bi bi-wifi-off"></i>
+                                        Downtime
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Message" asp-action="Index">
+                                        <i class="bi bi-chat-dots-fill"></i>
+                                        WhatsApp Message
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Email" asp-action="Index">
+                                        <i class="bi bi-envelope-arrow-up-fill"></i>
+                                        Email Message
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Main Content Wrapper -->
+    <div class="main-wrapper">
+        <!-- Enhanced Top Navigation -->
+        <nav class="navbar navbar-expand-lg top-navbar">
+            <div class="container-fluid">
+                <!-- Quick Navigation -->
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Dashboard" asp-action="Index">
+                            <i class="bi bi-house-fill me-2"></i>
+                            Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Monitor" asp-action="Index">
+                            <i class="bi bi-activity me-2"></i>
+                            Live Monitoring
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Right Side Menu -->
+                <ul class="navbar-nav ms-auto">
+                    <!-- Notifications Dropdown -->
+                    @* <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="notificationDropdown" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-bell-fill me-2"></i>
+                            Notifications
+                            <span class="badge bg-danger ms-1">3</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
+                            <li>
+                                <h6 class="dropdown-header">
+                                    <i class="bi bi-bell"></i>
+                                    Recent Alerts
+                                </h6>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#">
+                                    <i class="bi bi-wifi-off text-danger"></i>
+                                    Network down at Site A
+                                    <small class="text-muted d-block">2 minutes ago</small>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#">
+                                    <i class="bi bi-exclamation-triangle text-warning"></i>
+                                    High latency detected
+                                    <small class="text-muted d-block">5 minutes ago</small>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#">
+                                    <i class="bi bi-check-circle text-success"></i>
+                                    System backup completed
+                                    <small class="text-muted d-block">10 minutes ago</small>
+                                </a>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-center" href="#">
+                                    <i class="bi bi-arrow-right"></i>
+                                    View All Notifications
+                                </a>
+                            </li>
+                        </ul>
+                    </li> *@
+
+                    <li class="nav-item dropdown">
+                        <div class="nav-link" id="userDropdown">
+                            <i class="bi bi-person-circle me-2"></i>
+                            <span id="current-time"></span>
+                        </div>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle me-2"></i>
+                            @(ViewBag.UserName ?? "Unknown User")
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            @* <li>
+                                <h6 class="dropdown-header">
+                                    <i class="bi bi-person-badge"></i>
+                                    User Account
+                                </h6>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a class="dropdown-item" asp-controller="Setting" asp-action="Index">
+                                    <i class="bi bi-gear"></i>
+                                    Settings
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#">
+                                    <i class="bi bi-person-gear"></i>
+                                    Profile Settings
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#">
+                                    <i class="bi bi-shield-lock"></i>
+                                    Change Password
+                                </a>
+                            </li> *@
+                            <li>
+                                <a class="dropdown-item" asp-controller="WhatsAppClient" asp-action="Index">
+                                    <i class="bi bi-chat-square-dots"></i>
+                                    WhatsApp Client
+                                </a>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a class="dropdown-item" asp-controller="Auth" asp-action="Logout">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                    Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="refreshPage()">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Breadcrumb Section -->
+        @if (ViewData["Breadcrumb"] != null)
+        {
+            <div class="breadcrumb-section">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        @Html.Raw(ViewData["Breadcrumb"])
+                    </ol>
+                </nav>
+            </div>
+        }
+
+        <!-- Main Content Area -->
+        <div class="content-wrapper">
+            @if (ViewData["Title"] != null && ViewData["Title"].ToString() != "Dashboard")
+            {
+                <div class="page-title">
+                    <h3>@ViewData["Title"]</h3>
+                </div>
+            }
+
+            <!-- Main Content -->
+            <main role="main">
+                @RenderBody()
+            </main>
+        </div>
+
+        <!-- Enhanced Footer -->
+        <footer class="footer mt-4">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="footer-text">
+                            <strong>Network Down Management & Notification System</strong>
+                            <span class="text-muted">- Version 2.0.1</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner">
+            <div class="spinner-border text-warning" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div class="loading-text">Loading...</div>
+        </div>
+    </div>
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainWrapper = document.querySelector('.main-wrapper');
+
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('show');
+            } else {
+                sidebar.style.transform = sidebar.style.transform === 'translateX(-100%)' ? 'translateX(0)' : 'translateX(-100%)';
+                mainWrapper.style.marginLeft = sidebar.style.transform === 'translateX(-100%)' ? '0' : '270px';
+            }
+        }
+
+        function refreshPage() {
+            showLoading();
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        }
+
+        function showLoading() {
+            document.getElementById('loading-overlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-overlay').style.display = 'none';
+        }
+
+        jQuery(document).ready(function ($) {
+            
+            function updateTime() {
+                const now = new Date();
+                const timeString = now.toLocaleString('en-US', {
+                    weekday: 'short',
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                $('#current-time').text(timeString);
+            }
+
+            updateTime();
+            setInterval(updateTime, 1000);
+
+            const currentPath = window.location.pathname;
+            $('.sidebar .nav-link').each(function () {
+                const $link = $(this);
+                const href = $link.attr('href');
+
+                if (href && currentPath.includes(href.split('/').slice(-2).join('/'))) {
+                    $link.addClass('active');
+
+                    const $collapse = $link.closest('.collapse');
+                    if ($collapse.length) {
+                        $collapse.addClass('show');
+                        $collapse.prev('a[data-bs-toggle="collapse"]').attr('aria-expanded', 'true');
+                    }
+                } else {
+                    $link.removeClass('active');
+                }
+            });
+
+            $('.top-navbar .nav-link').hover(
+                function () {
+                    $(this).addClass('shadow-sm');
+                },
+                function () {
+                    $(this).removeClass('shadow-sm');
+                }
+            );
+
+            $('.dropdown-item').click(function () {
+                setTimeout(() => {
+                    $('.dropdown-menu').removeClass('show');
+                }, 300);
+            });
+
+            window.addEventListener('error', function (e) {
+                console.error('Layout Error:', e.error);
+                hideLoading();
+            });
+
+            function checkNetworkStatus() {
+                if (navigator.onLine) {
+                    $('body').removeClass('offline');
+                } else {
+                    $('body').addClass('offline');
+                    console.warn('Network connection lost');
+                }
+            }
+
+            window.addEventListener('online', checkNetworkStatus);
+            window.addEventListener('offline', checkNetworkStatus);
+            checkNetworkStatus();
+        });
+
+        document.addEventListener('keydown', function (e) {
+            // Alt + R: Refresh Page
+            if (e.altKey && e.key === 'r') {
+                e.preventDefault();
+                refreshPage();
+            }
+
+            // Alt + H: Go to Dashboard
+            if (e.altKey && e.key === 'h') {
+                e.preventDefault();
+                window.location.href = '/Dashboard';
+            }
+        });
+
+        window.addEventListener('beforeprint', function () {
+            document.body.classList.add('printing');
+        });
+
+        window.addEventListener('afterprint', function () {
+            document.body.classList.remove('printing');
+        });
+    </script>
+
+    <script>
+        jQuery(document).ready(function ($) {
+            const nameInput = $('.name-input');
+            const codeNameInput = $('.code-name-input');
+            const phoneInput = $('.phone-input');
+            const emailInput = $('.email-input');
+            const numberInput = $('.number-input');
+            
+            const ipAddressInput = $('.ip-address-input');
+            const usernameInput = $('.username-input');
+            const codeInput = $('.code-input');
+            const nameNumberInput = $('.name-number-input');
+            
+            // Name Input Validation
+            nameInput.on('keypress', function(e) {
+                const char = String.fromCharCode(e.which);
+                const isValidChar = /[a-zA-Z\s\-']/.test(char);
+                
+                if (!isValidChar) {
+                    e.preventDefault();
+                }
+            });
+            
+            nameInput.on('input', function(e) {
+                const originalValue = e.target.value;
+                const filteredValue = filterValidNameCharacters(originalValue);
+                
+                if (originalValue !== filteredValue) {
+                    e.target.value = filteredValue;
+                }
+            });
+            
+            nameInput.on('paste', function(e) {
+                e.preventDefault();
+                
+                const clipboardData = e.originalEvent.clipboardData || e.clipboardData || window.clipboardData;
+                
+                if (!clipboardData) {
+                    return;
+                }
+                
+                const pastedData = clipboardData.getData('text') || clipboardData.getData('text/plain');
+                
+                if (!pastedData) {
+                    return;
+                }
+                
+                const filteredData = filterValidNameCharacters(pastedData);
+                
+                const startPos = e.target.selectionStart;
+                const endPos = e.target.selectionEnd;
+                
+                const currentValue = e.target.value;
+                const newValue = currentValue.substring(0, startPos) + filteredData + currentValue.substring(endPos);
+                
+                e.target.value = newValue;
+                
+                const newCursorPos = startPos + filteredData.length;
+                e.target.setSelectionRange(newCursorPos, newCursorPos);
+            });
+    
+            // Code Name Input Validation
+            codeNameInput.on('keypress', function(e) {
+                const char = String.fromCharCode(e.which);
+                const isValidChar = /[a-zA-Z\s\-_'+]/.test(char);
+                
+                if (!isValidChar) {
+                    e.preventDefault();
+                }
+            });
+            
+            codeNameInput.on('input', function(e) {
+                const originalValue = e.target.value;
+                const filteredValue = filterValidCodenameCharacters(originalValue);
+                
+                if (originalValue !== filteredValue) {
+                    e.target.value = filteredValue;
+                }
+            });
+            
+            codeNameInput.on('paste', function(e) {
+                e.preventDefault();
+                
+                const clipboardData = e.originalEvent.clipboardData || e.clipboardData || window.clipboardData;
+                
+                if (!clipboardData) {
+                    return;
+                }
+                
+                const pastedData = clipboardData.getData('text') || clipboardData.getData('text/plain');
+                
+                if (!pastedData) {
+                    return;
+                }
+                
+                const filteredData = filterValidCodenameCharacters(pastedData);
+                
+                const startPos = e.target.selectionStart;
+                const endPos = e.target.selectionEnd;
+                
+                const currentValue = e.target.value;
+                const newValue = currentValue.substring(0, startPos) + filteredData + currentValue.substring(endPos);
+                
+                e.target.value = newValue;
+                
+                const newCursorPos = startPos + filteredData.length;
+                e.target.setSelectionRange(newCursorPos, newCursorPos);
+            });
+
+            // Phone Input Validation
+            phoneInput.on('keypress', function(e) {
+                const char = String.fromCharCode(e.which);
+                const isNumber = /[0-9]/.test(char);
+                
+                if (!isNumber) {
+                    e.preventDefault();
+                }
+            });
+            
+            phoneInput.on('input', function(e) {
+                const originalValue = e.target.value;
+                const filteredValue = filterValidPhoneCharacters(originalValue);
+                
+                if (originalValue !== filteredValue) {
+                    e.target.value = filteredValue;
+                    e.target.setSelectionRange(filteredValue.length, filteredValue.length);
+                }
+            });
+            
+            phoneInput.on('paste', function(e) {
+                e.preventDefault();
+                
+                const clipboardData = e.originalEvent.clipboardData || e.clipboardData || window.clipboardData;
+                
+                if (!clipboardData) {
+                    return;
+                }
+                
+                let pastedData = clipboardData.getData('text') || clipboardData.getData('text/plain');
+                
+                if (!pastedData) {
+                    return;
+                }
+                
+                pastedData = pastedData.replace(/\+/g, '');
+                
+                const filteredData = filterValidPhoneCharacters(pastedData);
+                
+                e.target.value = filteredData;
+                
+                e.target.setSelectionRange(filteredData.length, filteredData.length);
+            });
+
+            phoneInput.on('focus', function(e) {
+                if (e.target.value === '') {
+                    e.target.value = '62';
+                    e.target.setSelectionRange(2, 2);
+                }
+            });
+
+            // Email Input Validation
+            emailInput.on('keypress', function(e) {
+                const char = String.fromCharCode(e.which);
+                const isValidChar = /[a-zA-Z0-9@@.\-'_+]/.test(char);
+                
+                if (!isValidChar) {
+                    e.preventDefault();
+                }
+            });
+            
+            emailInput.on('input', function(e) {
+                const originalValue = e.target.value;
+                const filteredValue = filterValidEmailCharacters(originalValue);
+                
+                if (originalValue !== filteredValue) {
+                    const cursorPos = e.target.selectionStart;
+                    e.target.value = filteredValue;
+                    
+                    const removedChars = originalValue.length - filteredValue.length;
+                    const newCursorPos = Math.max(0, cursorPos - removedChars);
+                    e.target.setSelectionRange(newCursorPos, newCursorPos);
+                }
+            });
+            
+            emailInput.on('paste', function(e) {
+                e.preventDefault();
+                
+                const clipboardData = e.originalEvent.clipboardData || e.clipboardData || window.clipboardData;
+                
+                if (!clipboardData) {
+                    return;
+                }
+                
+                const pastedData = clipboardData.getData('text') || clipboardData.getData('text/plain');
+                
+                if (!pastedData) {
+                    return;
+                }
+                
+                const filteredData = filterValidEmailCharacters(pastedData);
+                
+                const startPos = e.target.selectionStart;
+                const endPos = e.target.selectionEnd;
+                
+                const currentValue = e.target.value;
+                const newValue = currentValue.substring(0, startPos) + filteredData + currentValue.substring(endPos);
+                
+                e.target.value = newValue;
+                
+                const newCursorPos = startPos + filteredData.length;
+                e.target.setSelectionRange(newCursorPos, newCursorPos);
+            });
+            
+            // Number Input Validation
+            numberInput.on('keypress', function(e) {
+                const char = String.fromCharCode(e.which);
+                const isValidChar = /[0-9]/.test(char);
+                
+                if (!isValidChar) {
+                    e.preventDefault();
+                }
+            });
+            
+            numberInput.on('input', function(e) {
+                const originalValue = e.target.value;
+                const filteredValue = filterValidNumberCharacters(originalValue);
+                
+                if (originalValue !== filteredValue) {
+                    e.target.value = filteredValue;
+                }
+            });
+            
+            numberInput.on('paste', function(e) {
+                e.preventDefault();
+                
+                const clipboardData = e.originalEvent.clipboardData || e.clipboardData || window.clipboardData;
+                
+                if (!clipboardData) {
+                    return;
+                }
+                
+                const pastedData = clipboardData.getData('text') || clipboardData.getData('text/plain');
+                
+                if (!pastedData) {
+                    return;
+                }
+                
+                const filteredData = filterValidNumberCharacters(pastedData);
+                
+                const startPos = e.target.selectionStart;
+                const endPos = e.target.selectionEnd;
+                
+                const currentValue = e.target.value;
+                const newValue = currentValue.substring(0, startPos) + filteredData + currentValue.substring(endPos);
+                
+                e.target.value = newValue;
+                
+                const newCursorPos = startPos + filteredData.length;
+                e.target.setSelectionRange(newCursorPos, newCursorPos);
+            });
+            
+            // IP Address Input Validation
+            ipAddressInput.on('keypress', function(e) {
+                const char = String.fromCharCode(e.which);
+                const isValidChar = /[0-9.]/.test(char);
+                
+                if (!isValidChar) {
+                    e.preventDefault();
+                }
+            });
+            
+            ipAddressInput.on('input', function(e) {
+                const originalValue = e.target.value;
+                const filteredValue = filterValidIpCharacters(originalValue);
+                
+                if (originalValue !== filteredValue) {
+                    const cursorPos = e.target.selectionStart;
+                    e.target.value = filteredValue;
+                    
+                    const removedChars = originalValue.length - filteredValue.length;
+                    const newCursorPos = Math.max(0, cursorPos - removedChars);
+                    e.target.setSelectionRange(newCursorPos, newCursorPos);
+                }
+            });
+            
+            ipAddressInput.on('paste', function(e) {
+                e.preventDefault();
+                
+                const clipboardData = e.originalEvent.clipboardData || e.clipboardData || window.clipboardData;
+                
+                if (!clipboardData) {
+                    return;
+                }
+                
+                const pastedData = clipboardData.getData('text') || clipboardData.getData('text/plain');
+                
+                if (!pastedData) {
+                    return;
+                }
+                
+                const filteredData = filterValidIpCharacters(pastedData);
+                
+                const startPos = e.target.selectionStart;
+                const endPos = e.target.selectionEnd;
+                
+                const currentValue = e.target.value;
+                const newValue = currentValue.substring(0, startPos) + filteredData + currentValue.substring(endPos);
+                
+                e.target.value = newValue;
+                
+                const newCursorPos = startPos + filteredData.length;
+                e.target.setSelectionRange(newCursorPos, newCursorPos);
+            });
+
+            // Username Input Validation
+            usernameInput.on('keypress', function(e) {
+                const char = String.fromCharCode(e.which);
+                const isValidChar = /[a-zA-Z0-9@@\-'_]/.test(char);
+                
+                if (!isValidChar) {
+                    e.preventDefault();
+                }
+            });
+            
+            usernameInput.on('input', function(e) {
+                const originalValue = e.target.value;
+                const filteredValue = filterValidUsernameCharacters(originalValue);
+                
+                if (originalValue !== filteredValue) {
+                    const cursorPos = e.target.selectionStart;
+                    e.target.value = filteredValue;
+                    
+                    const removedChars = originalValue.length - filteredValue.length;
+                    const newCursorPos = Math.max(0, cursorPos - removedChars);
+                    e.target.setSelectionRange(newCursorPos, newCursorPos);
+                }
+            });
+            
+            usernameInput.on('paste', function(e) {
+                e.preventDefault();
+                
+                const clipboardData = e.originalEvent.clipboardData || e.clipboardData || window.clipboardData;
+                
+                if (!clipboardData) {
+                    return;
+                }
+                
+                const pastedData = clipboardData.getData('text') || clipboardData.getData('text/plain');
+                
+                if (!pastedData) {
+                    return;
+                }
+                
+                const filteredData = filterValidUsernameCharacters(pastedData);
+                
+                const startPos = e.target.selectionStart;
+                const endPos = e.target.selectionEnd;
+                
+                const currentValue = e.target.value;
+                const newValue = currentValue.substring(0, startPos) + filteredData + currentValue.substring(endPos);
+                
+                e.target.value = newValue;
+                
+                const newCursorPos = startPos + filteredData.length;
+                e.target.setSelectionRange(newCursorPos, newCursorPos);
+            });
+
+            // Code Input Validation (only alphabets, auto uppercase)
+            codeInput.on('keypress', function(e) {
+                const char = String.fromCharCode(e.which);
+                const isValidChar = /[a-zA-Z]/.test(char);
+                
+                if (!isValidChar) {
+                    e.preventDefault();
+                }
+            });
+            
+            codeInput.on('input', function(e) {
+                const originalValue = e.target.value;
+                const filteredValue = filterValidCodeCharacters(originalValue);
+                const upperCaseValue = filteredValue.toUpperCase();
+                
+                if (originalValue !== upperCaseValue) {
+                    const cursorPos = e.target.selectionStart;
+                    e.target.value = upperCaseValue;
+                    
+                    // Maintain cursor position
+                    e.target.setSelectionRange(cursorPos, cursorPos);
+                }
+            });
+            
+            codeInput.on('paste', function(e) {
+                e.preventDefault();
+                
+                const clipboardData = e.originalEvent.clipboardData || e.clipboardData || window.clipboardData;
+                
+                if (!clipboardData) {
+                    return;
+                }
+                
+                const pastedData = clipboardData.getData('text') || clipboardData.getData('text/plain');
+                
+                if (!pastedData) {
+                    return;
+                }
+                
+                const filteredData = filterValidCodeCharacters(pastedData);
+                const upperCaseData = filteredData.toUpperCase();
+                
+                const startPos = e.target.selectionStart;
+                const endPos = e.target.selectionEnd;
+                
+                const currentValue = e.target.value;
+                const newValue = currentValue.substring(0, startPos) + upperCaseData + currentValue.substring(endPos);
+                
+                e.target.value = newValue;
+                
+                const newCursorPos = startPos + upperCaseData.length;
+                e.target.setSelectionRange(newCursorPos, newCursorPos);
+            });        
+        
+            // Name Number Input Validation
+            nameNumberInput.on('keypress', function(e) {
+                const char = String.fromCharCode(e.which);
+                const isValidChar = /[a-zA-Z0-9\s\-_+]/.test(char);
+                
+                if (!isValidChar) {
+                    e.preventDefault();
+                }
+            });
+            
+            nameNumberInput.on('input', function(e) {
+                const originalValue = e.target.value;
+                const filteredValue = filterValidNameNumberCharacters(originalValue);
+                
+                if (originalValue !== filteredValue) {
+                    e.target.value = filteredValue;
+                }
+            });
+            
+            nameNumberInput.on('paste', function(e) {
+                e.preventDefault();
+                
+                const clipboardData = e.originalEvent.clipboardData || e.clipboardData || window.clipboardData;
+                
+                if (!clipboardData) {
+                    return;
+                }
+                
+                const pastedData = clipboardData.getData('text') || clipboardData.getData('text/plain');
+                
+                if (!pastedData) {
+                    return;
+                }
+                
+                const filteredData = filterValidNameNumberCharacters(pastedData);
+                
+                const startPos = e.target.selectionStart;
+                const endPos = e.target.selectionEnd;
+                
+                const currentValue = e.target.value;
+                const newValue = currentValue.substring(0, startPos) + filteredData + currentValue.substring(endPos);
+                
+                e.target.value = newValue;
+                
+                const newCursorPos = startPos + filteredData.length;
+                e.target.setSelectionRange(newCursorPos, newCursorPos);
+            });
+        });
+    </script>
+        
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+
+</html>

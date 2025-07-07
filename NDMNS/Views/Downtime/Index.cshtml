@@ -1,0 +1,302 @@
+﻿@{
+    ViewData["Title"] = "Master Data Downtime";
+    ViewData["Breadcrumb"] = "<li class='breadcrumb-item'><a href='#'>Home</a></li><li class='breadcrumb-item'><a href='#'>Master Data</a></li><li class='breadcrumb-item active'>Downtime</li>";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="clearfix"></div>
+<div class="col-sm-12">    
+    <!-- Action Buttons -->
+    <div class="mb-3">
+        <a href="javascript:void(0)" class="btn btn-secondary btn-sm" onclick="reset()">
+            <i class="bi bi-arrow-clockwise"></i> Reset
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="table-responsive">
+        <table id="datatable-fixed-header" class="table table-striped table-bordered datatable-fixed-header" style="width:100%">
+            <thead class="table-light">
+                <tr>
+                    <th style="text-align: center;">No.</th>
+                    <th style="text-align: center;">Network</th>
+                    <th style="text-align: center;">Site</th>
+                    <th style="text-align: center;">ISP</th>
+                    <th style="text-align: center;">Ticket Number</th>
+                    <th style="text-align: center;">Category</th>
+                    <th style="text-align: center;">Start</th>
+                    <th style="text-align: center;">End</th>
+                    <th style="text-align: center;">Status</th>
+                    <th style="text-align: center;">Duration</th>
+                </tr>
+                <tr>
+                    <th></th>
+                    <th>
+                        <input type="text" class="form-control form-control-sm code-name-input" id="network_filter"
+                                onkeypress="handleKeyPress(event)">
+                    </th>
+                    <th>
+                        <input type="text" class="form-control form-control-sm name-input" id="site_filter"
+                                onkeypress="handleKeyPress(event)">
+                    </th>
+                    <th>
+                        <input type="text" class="form-control form-control-sm name-input" id="isp_filter"
+                                onkeypress="handleKeyPress(event)">
+                    </th>
+                    <th>
+                        <input type="text" class="form-control form-control-sm number-input" id="ticketnumber_filter"
+                                onkeypress="handleKeyPress(event)">
+                    </th>
+                    <th>
+                        <select class="form-select form-select-sm" id="category_filter" onchange="search()">
+                            <option value="">All</option>
+                            <option value="1">Internal</option>
+                            <option value="2">ISP</option>
+                        </select>
+                    </th>
+                    <th>
+                        <input type="date" class="form-control form-control-sm" id="start_date_filter"
+                                onchange="search()">
+                    </th>
+                    <th>
+                        <input type="date" class="form-control form-control-sm" id="end_date_filter"
+                                onchange="search()">
+                    </th>
+                    <th>
+                        <select class="form-select form-select-sm" id="status_filter" onchange="search()">
+                            <option value="">All</option>
+                            <option value="1">Ongoing</option>
+                            <option value="2">Resolved</option>
+                        </select>
+                    </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int no = 1;
+                }
+                @if (Model != null)
+                {
+                    @foreach (var row in Model)
+                    {
+                        <tr>
+                            <td>@(no++)</td>
+                            <td>@(row.NetworkName ?? "Unknown Network")</td>
+                            <td>@(row.SiteName ?? "Unknown Site")</td>
+                            <td>@(row.IspName ?? "Unknown ISP")</td>
+                            <td>@row.TicketNumber</td>
+                            <td data-category="@row.Category">
+                                @switch (row.Category)
+                                {
+                                    case 1:
+                                        <span class="badge bg-info">Internal</span>
+                                        break;
+                                    case 2:
+                                        <span class="badge bg-primary">ISP</span>
+                                        break;
+                                    default:
+                                        <span class="badge bg-secondary">Undefined</span>
+                                        break;
+                                }
+                            </td>
+                            <td data-order='@row.Start.ToString("yyyy-MM-ddTHH:mm:ss")'>@row.Start.ToString("dd/MM/yyyy HH:mm WIB")</td>
+                            <td data-order='@(row.End != null ? row.End?.ToString("yyyy-MM-ddTHH:mm:ss") : "")'>
+                                @if (row.End != null)
+                                {
+                                    @row.End.ToString("dd/MM/yyyy HH:mm WIB").ToString();
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td data-status="@row.Status">
+                                @switch (row.Status)
+                                {
+                                    case 1:
+                                        <span class="badge bg-warning text-dark">Ongoing</span>
+                                        break;
+                                    case 2:
+                                        <span class="badge bg-success">Resolved</span>
+                                        break;
+                                    default:
+                                        <span class="badge bg-secondary">Undefined</span>
+                                        break;
+                                }
+                            </td>
+                            <td>
+                                @if (row.End != null)
+                                {
+                                    var duration = row.End - row.Start;
+                                    if (duration.TotalDays >= 1)
+                                    {
+                                        @($"{duration.Days}d {duration.Hours}h {duration.Minutes}m")
+                                    }
+                                    else if (duration.TotalHours >= 1)
+                                    {
+                                        @($"{duration.Hours}h {duration.Minutes}m")
+                                    }
+                                    else
+                                    {
+                                        @($"{duration.Minutes}m")
+                                    }
+                                }
+                                else
+                                {
+                                    var duration = DateTime.Now - row.Start;
+                                    if (duration.TotalDays >= 1)
+                                    {
+                                        @($"{duration.Days}d {duration.Hours}h {duration.Minutes}m")
+                                    }
+                                    else if (duration.TotalHours >= 1)
+                                    {
+                                        @($"{duration.Hours}h {duration.Minutes}m")
+                                    }
+                                    else
+                                    {
+                                        @($"{duration.Minutes}m")
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.bootstrap5.min.css">
+
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
+
+    <script>
+        var dataTable;
+
+        $(document).ready(function () {
+            dataTable = $('#datatable-fixed-header').DataTable({
+                fixedHeader: true,
+                orderCellsTop: true,
+                responsive: false,
+                lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+                scrollCollapse: true,
+                scrollX: true,
+                scrollY: '35vh',
+                columnDefs: [
+                    {
+                        targets: 0,
+                        searchable: false,
+                        orderable: false,
+                        width: '40px',
+                        className: 'dt-body-center',
+                    },
+                ],
+                order: [[6, 'desc']],
+            });
+
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+
+        function reset() {
+            $('#network_filter').val('');
+            $('#site_filter').val('');
+            $('#isp_filter').val('');
+            $('#ticketnumber_filter').val('');
+            $('#category_filter').val('');
+            $('#start_date_filter').val('');
+            $('#end_date_filter').val('');
+            $('#status_filter').val('');
+
+            dataTable.search('').columns().search('').draw();
+        }
+
+        function search() {
+            var network = $('#network_filter').val();
+            var site = $('#site_filter').val();
+            var isp = $('#isp_filter').val();
+            var ticketNumber = $('#ticketnumber_filter').val();
+            var category = $('#category_filter').val();
+            var startDate = $('#start_date_filter').val();
+            var endDate = $('#end_date_filter').val();
+            var status = $('#status_filter').val();
+
+            dataTable.columns(1).search(network);
+            dataTable.columns(2).search(site);
+            dataTable.columns(3).search(isp);
+            dataTable.columns(4).search(ticketNumber);
+
+            if (startDate) {
+                var formattedDate = new Date(date).toLocaleDateString('en-GB');
+                dataTable.columns(6).search(formattedDate);
+            }
+
+            if (endDate) {
+                var formattedDate = new Date(date).toLocaleDateString('en-GB');
+                dataTable.columns(7).search(formattedDate);
+            }
+            
+            
+            $.fn.dataTable.ext.search.push(
+                function (settings, data, dataIndex) {
+                    var row = dataTable.row(dataIndex).node();
+
+                    if (category && category !== '') {
+                        var statusData = $(row).find('td:eq(5)').attr('data-category');
+                        if (statusData != status) {
+                            return false;
+                        }
+                    }
+
+                    if (status && status !== '') {
+                        var statusData = $(row).find('td:eq(8)').attr('data-status');
+                        if (statusData != status) {
+                            return false;
+                        }
+                    }
+                    
+                    return true;
+                }
+            );
+            dataTable.draw();
+            $.fn.dataTable.ext.search.pop();
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                search();
+            }
+        }
+
+
+        $(document).ready(function() {
+            setTimeout(function() {
+                $('.alert').fadeOut('slow');
+            }, 5000);
+        });
+    </script>
+}

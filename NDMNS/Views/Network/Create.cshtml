@@ -1,0 +1,114 @@
+@model NDMNS.Models.Network
+@{
+    ViewData["Title"] = "Add Network";
+    ViewData["Breadcrumb"] = "<li class='breadcrumb-item'><a href='#'>Home</a></li><li class='breadcrumb-item'><a href='#'>Master Data</a></li><li class='breadcrumb-item'><a asp-controller='Network' asp-action='Index'>Network</a></li><li class='breadcrumb-item active'>Add</li>";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="clearfix"></div>
+
+<div class="col-sm-12">
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label">Name <span class="text-danger">*</span></label>
+                    <input asp-for="Name" class="form-control name-number-input" placeholder="Enter network name" minlength="2" maxlength="100"/>
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="Ip" class="form-label">IP Address <span class="text-danger">*</span></label>
+                    <input asp-for="Ip" class="form-control ip-address-input" placeholder="Enter network IP address" />
+                    <span asp-validation-for="Ip" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="SiteId" class="form-label">Site <span class="text-danger">*</span></label>
+                    <select asp-for="SiteId" class="form-select">
+                        <option value="" selected disabled>-- Choose Site --</option>
+                        @if (ViewBag.Sites != null)
+                        {
+                            @foreach (var site in ViewBag.Sites)
+                            {
+                                <option value="@site.Id">@(site.Name ?? "Unknown Site")</option>
+                            }
+                        }
+                    </select>
+                    <span asp-validation-for="SiteId" class="text-danger"></span>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="IspId" class="form-label">ISP <span class="text-danger">*</span></label>
+                    <select asp-for="IspId" class="form-select">
+                        <option value="" selected disabled>-- Choose ISP --</option>
+                        @if (ViewBag.Isps != null)
+                        {
+                            @foreach (var isp in ViewBag.Isps)
+                            {
+                                <option value="@isp.Id">@(isp.Name ?? "Unknown ISP")</option>
+                            }
+                        }
+                    </select>
+                    <span asp-validation-for="IspId" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="Cid" class="form-label">CID<span class="text-danger">*</span></label>
+                    <input asp-for="Cid" class="form-control name-number-input" placeholder="Enter CID" />
+                    <span asp-validation-for="Cid" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="d-flex justify-content-between">
+                    <a asp-controller="Network" asp-action="Index" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </a>
+                    @if (ViewBag.IsNOC == true || ViewBag.IsTeamLeader == true)
+                    {
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Save
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            setTimeout(function() {
+                $('.alert').fadeOut('slow');
+            }, 5000);
+        });
+    </script>
+}

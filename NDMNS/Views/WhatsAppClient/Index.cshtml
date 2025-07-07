@@ -1,0 +1,500 @@
+@using System.Globalization
+@{
+    ViewData["Title"] = "WhatsApp Client";
+    ViewData["Breadcrumb"] = "<li class='breadcrumb-item'><a href='#'>Home</a></li><li class='breadcrumb-item active'>WhatsApp Client</li>";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<link href="~/css/whatsapp-client.css" rel="stylesheet" asp-append-version="true" />
+
+<div class="clearfix"></div>
+
+<div class="row" style="margin: 0px;">
+    <div class="col-md-12 col-sm-12 mt-3">
+        <div class="card shadow-lg border-0" style="border-radius: 20px; overflow: hidden;">
+            <div class="card-body p-0">
+                <div class="whatsapp-container">
+                    <!-- Enhanced Header -->
+                    <div class="whatsapp-header">
+                        <h1 class="whatsapp-title">
+                            <i class="bi bi-whatsapp"></i>
+                            WhatsApp Client Management
+                        </h1>
+                        <p class="whatsapp-subtitle">
+                            Connect and manage WhatsApp messaging service
+                        </p>
+                    </div>
+
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show mx-3" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show mx-3" role="alert">
+                            <i class="bi bi-check-circle-fill"></i>
+                            @TempData["Success"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <!-- WhatsApp Status Card -->
+                    <div class="status-card fade-in" data-delay="0">
+                        <div class="status-card-header">
+                            <div class="status-icon">
+                                <i class="bi bi-whatsapp"></i>
+                            </div>
+                            <h3 class="status-title">WhatsApp Connection Status</h3>
+                        </div>
+                        <div class="status-content">
+                            @{
+                                TextInfo textInfo = new CultureInfo("en-US",false).TextInfo;
+                                var whatsappStatus = "";
+                                var statusClass = "";
+                                var isConnected = false;
+                                var hasQrCode = false;
+                                
+                                if(ViewBag.WhatsAppStatus != null)
+                                {
+                                    if(ViewBag.WhatsAppStatus.IsReady && string.IsNullOrEmpty(ViewBag.WhatsAppStatus.QrCode) && ViewBag.WhatsAppStatus.Status == "connected")
+                                    {
+                                        whatsappStatus = "Connected";
+                                        statusClass = "status-connected";
+                                        isConnected = true;
+                                    } 
+                                    else if(!ViewBag.WhatsAppStatus.IsReady && !string.IsNullOrEmpty(ViewBag.WhatsAppStatus.QrCode) && ViewBag.WhatsAppStatus.Status == "qr_ready")
+                                    {
+                                        whatsappStatus = "Disconnected";
+                                        statusClass = "status-disconnected";
+                                        hasQrCode = true;
+                                    } 
+                                    else 
+                                    {
+                                        whatsappStatus = textInfo.ToTitleCase(ViewBag.WhatsAppStatus.Status ?? "Unknown");
+                                        statusClass = "status-error";
+                                    }
+                                }
+                                else
+                                {
+                                    whatsappStatus = "Unknown";
+                                    statusClass = "status-error";
+                                }
+                            }
+                            
+                            <div class="status-display">
+                                <div class="status-badge @statusClass">
+                                    <i class="bi @(isConnected ? "bi-check-circle-fill" : hasQrCode ? "bi-qr-code" : "bi-x-circle-fill")"></i>
+                                    <span>@whatsappStatus</span>
+                                </div>
+                                
+                                <div class="status-description">
+                                    @if (isConnected)
+                                    {
+                                        <p class="text-success mb-0">
+                                            <i class="bi bi-shield-check"></i>
+                                            WhatsApp is connected and ready to send messages
+                                        </p>
+                                    }
+                                    else if (hasQrCode)
+                                    {
+                                        <p class="text-warning mb-0">
+                                            <i class="bi bi-exclamation-triangle"></i>
+                                            Please scan the QR code below to connect WhatsApp
+                                        </p>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-danger mb-0">
+                                            <i class="bi bi-x-circle"></i>
+                                            WhatsApp connection failed or unavailable
+                                        </p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- QR Code Section -->
+                    @if (hasQrCode)
+                    {
+                        <div class="qr-code-section fade-in" data-delay="200">
+                            <div class="qr-card">
+                                <div class="qr-card-header">
+                                    <div class="qr-icon">
+                                        <i class="bi bi-qr-code-scan"></i>
+                                    </div>
+                                    <h3 class="qr-title">Scan QR Code to Connect</h3>
+                                </div>
+                                
+                                <div class="qr-content">
+                                    <div class="qr-code-container">
+                                        <div id="qrcode" class="qr-display"></div>
+                                        <div class="qr-overlay">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="qr-instructions">
+                                        <div class="instruction-item">
+                                            <div class="instruction-number">1</div>
+                                            <div class="instruction-text">
+                                                <h4>Open WhatsApp on your phone</h4>
+                                                <p>Make sure WhatsApp is installed and running on your mobile device</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="instruction-item">
+                                            <div class="instruction-number">2</div>
+                                            <div class="instruction-text">
+                                                <h4>Go to Settings → Linked Devices</h4>
+                                                <p>Tap on "Settings" then select "Linked Devices"</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="instruction-item">
+                                            <div class="instruction-number">3</div>
+                                            <div class="instruction-text">
+                                                <h4>Scan this QR code</h4>
+                                                <p>Point your phone at the QR code above to connect</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Connection Management -->
+                    @* <div class="management-section fade-in" data-delay="600">
+                        <div class="management-card">
+                            <div class="management-header">
+                                <div class="management-icon">
+                                    <i class="bi bi-gear"></i>
+                                </div>
+                                <h3 class="management-title">Connection Management</h3>
+                            </div>
+                            
+                            <div class="management-content">
+                                <div class="management-actions">
+                                    <button id="refresh-status" class="btn btn-refresh">
+                                        <i class="bi bi-arrow-clockwise"></i>
+                                        Refresh Status
+                                    </button>
+                                    
+                                    @if (isConnected)
+                                    {
+                                        <button id="disconnect-whatsapp" class="btn btn-disconnect">
+                                            <i class="bi bi-power"></i>
+                                            Disconnect
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button id="reconnect-whatsapp" class="btn btn-connect">
+                                            <i class="bi bi-arrow-repeat"></i>
+                                            Reconnect
+                                        </button>
+                                    }
+                                </div>
+                                
+                                <div class="connection-info">
+                                    <div class="info-item">
+                                        <i class="bi bi-clock-history"></i>
+                                        <span>Last updated: <span id="last-update-time"></span></span>
+                                    </div>
+                                    
+                                    <div class="info-item">
+                                        <i class="bi bi-person-badge"></i>
+                                        <span>User: @(ViewBag.UserName ?? "Unknown")</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div> *@
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.7/signalr.min.js"></script>
+    <script>
+        jQuery(document).ready(function($) {
+            const hubUrl = 'https://localhost:44318/hubs/whatsapp';
+
+            const connection = new signalR.HubConnectionBuilder()
+            .withUrl(hubUrl, { withCredentials: true})
+            .withAutomaticReconnect({ nextRetryDelayInMilliseconds: retryContext => {
+                if (retryContext.elapsedMilliseconds < 60000) {
+                    return 5000;
+                } else {
+                    return null;
+                }
+            }})
+            .configureLogging(signalR.LogLevel.Information).build();
+                    
+            connection.on('ReceiveQrCode', (qrResponse) => {
+                console.log(qrResponse);
+                displayQrCode(qrResponse.qrCode);
+            });
+
+            connection.on('ReceiveStatus', (status) => {
+                updateWhatsAppStatus(status);
+            });
+            
+            async function startConnection() {
+                try {
+                    await connection.start();
+                    console.log('SignalR Connected');
+                    
+                } catch (err) {
+                    console.error('SignalR Connection Error: ', err);
+                }
+            }
+
+            connection.onclose(async () => {
+                await startConnection();
+            });
+        
+            startConnection();
+            initializeWhatsAppPage();
+            
+            updateTimestamp();
+            
+            @if (hasQrCode && ViewBag.WhatsAppStatus?.QrCode != null)
+            {
+                <text>
+                displayQrCode('@Html.Raw(ViewBag.WhatsAppStatus.QrCode)');
+                </text>
+            }
+            
+            setTimeout(function() {
+                $('.alert').fadeOut('slow');
+            }, 5000);
+        });
+
+        let qrCodeInstance = null;
+
+        function initializeWhatsAppPage() {
+            $('.fade-in').each(function(index) {
+                var $element = $(this);
+                var delay = $element.data('delay') || (index * 100);
+                
+                setTimeout(function() {
+                    $element.addClass('show');
+                }, delay);
+            });
+
+            $('#refresh-status').on('click', refreshStatus);
+            $('#disconnect-whatsapp').on('click', disconnectWhatsApp);
+            $('#reconnect-whatsapp').on('click', reconnectWhatsApp);
+        }
+
+        function displayQrCode(qrCodeData) {
+            // if (!qrCodeData) return;
+            
+            const qrcodeElement = document.getElementById('qrcode');
+            //if (!qrcodeElement) return;
+            
+            qrcodeElement.innerHTML = '';
+            
+            qrCodeInstance = new QRCode(qrcodeElement, {
+                text: qrCodeData,
+                width: 400,
+                height: 400,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            $('.qr-code-section').show();
+        }
+
+        function refreshStatus() {
+            const $btn = $('#refresh-status');
+            const originalText = $btn.html();
+            $btn.html('<i class="bi bi-arrow-clockwise rotate"></i> Refreshing...').prop('disabled', true);
+            
+            setTimeout(function() {
+                $btn.html(originalText).prop('disabled', false);
+                location.reload();
+            }, 1500);
+        }
+
+        function disconnectWhatsApp() {
+            if (confirm('Are you sure you want to disconnect WhatsApp?')) {
+                const $btn = $('#disconnect-whatsapp');
+                const originalText = $btn.html();
+                $btn.html('<i class="bi bi-hourglass-split"></i> Disconnecting...').prop('disabled', true);
+                
+                setTimeout(function() {
+                    showAlert('WhatsApp disconnected successfully', 'info');
+                    location.reload();
+                }, 2000);
+            }
+        }
+
+        function reconnectWhatsApp() {
+            const $btn = $('#reconnect-whatsapp');
+            const originalText = $btn.html();
+            $btn.html('<i class="bi bi-arrow-repeat rotate"></i> Reconnecting...').prop('disabled', true);
+            
+            setTimeout(function() {
+                $btn.html(originalText).prop('disabled', false);
+                location.reload();
+            }, 2000);
+        }
+
+        function showAlert(message, type) {
+            const alertClass = `alert-${type}`;
+            const iconClass = type === 'success' ? 'bi-check-circle-fill' : 
+                            type === 'warning' ? 'bi-exclamation-triangle-fill' : 
+                            type === 'danger' ? 'bi-x-circle-fill' : 'bi-info-circle-fill';
+            
+            const alertHtml = `
+                <div class="alert ${alertClass} alert-dismissible fade show mx-3" role="alert">
+                    <i class="bi ${iconClass}"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            
+            $('.whatsapp-header').after(alertHtml);
+            
+            setTimeout(function() {
+                $('.alert').last().fadeOut('slow');
+            }, 5000);
+        }
+
+        function updateTimestamp() {
+            const now = new Date();
+            const timeString = now.toLocaleString('id-ID', {
+                day: '2-digit',
+                month: '2-digit', 
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            $('#last-update-time').text(timeString);
+        }
+
+        function updateWhatsAppStatus(statusData) {
+            const statusBadge = $('.status-badge');
+            const statusDescription = $('.status-description p');
+            const statusIcon = statusBadge.find('i');
+            const statusText = statusBadge.find('span');
+            
+            statusBadge.removeClass('status-connected status-disconnected status-error status-warning status-info');
+            
+            let statusClass = '';
+            let iconClass = '';
+            let description = '';
+            let descriptionClass = '';
+            let descriptionIcon = '';
+            
+            switch(statusData.toLowerCase()) {
+                case 'connected':
+                case 'authenticated':
+                    statusClass = 'status-connected';
+                    iconClass = 'bi-check-circle-fill';
+                    description = 'WhatsApp is connected and ready to send messages';
+                    descriptionClass = 'text-success';
+                    descriptionIcon = 'bi-shield-check';
+                    $('.qr-code-section').fadeOut();
+                    break;
+                    
+                case 'initializing':
+                    statusClass = 'status-warning';
+                    iconClass = 'bi-hourglass-split';
+                    description = 'WhatsApp is initializing, please wait...';
+                    descriptionClass = 'text-warning';
+                    descriptionIcon = 'bi-hourglass-split';
+                    break;
+                    
+                case 'disconnected':
+                    statusClass = 'status-disconnected';
+                    iconClass = 'bi-x-circle-fill';
+                    description = 'WhatsApp is disconnected. Please reconnect to continue.';
+                    descriptionClass = 'text-danger';
+                    descriptionIcon = 'bi-x-circle';
+                    break;
+                    
+                case 'auth_failed':
+                    statusClass = 'status-error';
+                    iconClass = 'bi-exclamation-triangle-fill';
+                    description = 'Authentication failed. Please try reconnecting.';
+                    descriptionClass = 'text-danger';
+                    descriptionIcon = 'bi-exclamation-triangle';
+                    break;
+                    
+                case 'init_failed':
+                case 'setup_failed':
+                    statusClass = 'status-error';
+                    iconClass = 'bi-x-octagon-fill';
+                    description = 'WhatsApp initialization failed. Please refresh and try again.';
+                    descriptionClass = 'text-danger';
+                    descriptionIcon = 'bi-x-octagon';
+                    break;
+                    
+                case 'max_attempts_reached':
+                    statusClass = 'status-error';
+                    iconClass = 'bi-ban';
+                    description = 'Maximum connection attempts reached. Please wait before trying again.';
+                    descriptionClass = 'text-danger';
+                    descriptionIcon = 'bi-ban';
+                    break;
+                    
+                case 'qr_ready':
+                    statusClass = 'status-disconnected';
+                    iconClass = 'bi-qr-code';
+                    description = 'Please scan the QR code below to connect WhatsApp';
+                    descriptionClass = 'text-warning';
+                    descriptionIcon = 'bi-exclamation-triangle';
+                    $('.qr-code-section').fadeIn();
+                    break;
+                    
+                default:
+                    statusClass = 'status-error';
+                    iconClass = 'bi-question-circle-fill';
+                    description = 'Unknown WhatsApp status';
+                    descriptionClass = 'text-muted';
+                    descriptionIcon = 'bi-question-circle';
+            }
+            
+            statusBadge.addClass(statusClass);
+            statusIcon.attr('class', `bi ${iconClass}`);
+            statusText.text(capitalize(statusData));
+            
+            statusDescription.attr('class', `${descriptionClass} mb-0`);
+            statusDescription.html(`<i class="bi ${descriptionIcon}"></i> ${description}`);
+                        
+            statusBadge.addClass('status-updated');
+            setTimeout(() => {
+                statusBadge.removeClass('status-updated');
+            }, 1000);
+        }
+
+        function updateManagementButtons(isConnected) {
+            const actionsContainer = $('.management-actions');
+            
+            if (isConnected) {
+                $('#disconnect-whatsapp').show();
+                $('#reconnect-whatsapp').hide();
+            } else {
+                $('#disconnect-whatsapp').hide();
+                $('#reconnect-whatsapp').show();
+            }
+        }
+
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+        }
+    </script>
+}

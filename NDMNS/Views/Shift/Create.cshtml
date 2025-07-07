@@ -1,0 +1,141 @@
+@model NDMNS.Models.Shift
+@{
+    ViewData["Title"] = "Add Shift";
+    ViewData["Breadcrumb"] = "<li class='breadcrumb-item'><a href='#'>Home</a></li><li class='breadcrumb-item'><a href='#'>Master Data</a></li><li class='breadcrumb-item'><a asp-controller='Shift' asp-action='Index'>Shift</a></li><li class='breadcrumb-item active'>Add</li>";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="clearfix"></div>
+
+<div class="col-sm-12">
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="UserId" class="form-label">User <span class="text-danger">*</span></label>
+                    <select asp-for="UserId" class="form-select">
+                        <option value="" selected disabled>-- Choose User --</option>
+                        @if (ViewBag.Users != null)
+                        {
+                            @foreach (var user in ViewBag.Users)
+                            {
+                                <option value="@user.Id">@(user.Name ?? "Unknown User")</option>
+                            }
+                        }
+                    </select>
+                    <span asp-validation-for="UserId" class="text-danger"></span>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="StartDate" class="form-label">Start Date <span class="text-danger">*</span></label>
+                    <input asp-for="StartDate" class="form-control" type="date" />
+                    <span asp-validation-for="StartDate" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="EndDate" class="form-label">End Date <span class="text-danger">*</span></label>
+                    <input asp-for="EndDate" class="form-control" type="date" />
+                    <span asp-validation-for="EndDate" class="text-danger"></span>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Shift Type <span class="text-danger">*</span></label>
+                    <select id="shiftType" class="form-select">
+                        <option value="" selected disabled>-- Choose Shift Type --</option>
+                        <option value="morning">Morning Shift (06:00 - 14:00)</option>
+                        <option value="afternoon">Afternoon Shift (14:00 - 22:00)</option>
+                        <option value="night">Night Shift (22:00 - 06:00)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="StartTime" class="form-label">Start Time <span class="text-danger">*</span></label>
+                    <input asp-for="StartTime" class="form-control" type="time" readonly />
+                    <span asp-validation-for="StartTime" class="text-danger"></span>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="EndTime" class="form-label">End Time <span class="text-danger">*</span></label>
+                    <input asp-for="EndTime" class="form-control" type="time" readonly />
+                    <span asp-validation-for="EndTime" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="d-flex justify-content-between">
+                    <a asp-controller="Shift" asp-action="Index" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </a>
+                    @if (ViewBag.IsTeamLeader == true)
+                    {
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Save
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            setTimeout(function() {
+                $('.alert').fadeOut('slow');
+            }, 5000);
+
+            $('#shiftType').on('change', function() {
+                var shiftType = $(this).val();
+                var startTime = '';
+                var endTime = '';
+                
+                switch(shiftType) {
+                    case 'morning':
+                        startTime = '06:00';
+                        endTime = '14:00';
+                        break;
+                    case 'afternoon':
+                        startTime = '14:00';
+                        endTime = '22:00';
+                        break;
+                    case 'night':
+                        startTime = '22:00';
+                        endTime = '06:00';
+                        break;
+                }
+                
+                $('#StartTime').val(startTime);
+                $('#EndTime').val(endTime);
+            });
+        });
+    </script>
+}

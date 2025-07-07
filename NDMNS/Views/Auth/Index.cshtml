@@ -1,0 +1,81 @@
+@model NDMNS.Models.LoginRequest
+@{
+    ViewData["Title"] = "Login";
+    Layout = "_LayoutAuth";
+}
+
+<section class="login_content">
+    <form asp-controller="Auth" asp-action="Index" method="post">
+        @Html.AntiForgeryToken()
+
+        <h1 class="login-title">Login</h1>
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        <div class="row" style="text-align: left !important;">
+            <div class="col-md-12">
+                <div class="mb-3">
+                    <label asp-for="Nrp" class="form-label">NRP <span class="text-danger">*</span></label>
+                    <input asp-for="Nrp" class="form-control" type="text" placeholder="Enter NRP" minlength="10" maxlength="10"/>
+                    <span asp-validation-for="Nrp" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row" style="text-align: left !important;">
+            <div class="col-md-12">
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label">Password <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <input asp-for="Password" class="form-control" type="password" placeholder="Enter password" id="passwordInput" />
+                    </div>
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+        <div>
+            <button type="submit" class="btn btn-login">
+                <i class="fas fa-sign-in-alt me-1"></i> Log in
+            </button>
+        </div>
+
+        <div class="clearfix"></div>
+
+        <div class="separator">
+            <div class="clearfix"></div>
+            <br />
+            <div>
+                <h1 class="app-title">Network Down Management & Notification System</h1>
+                @* <p class="app-subtitle">Netify</p> *@
+            </div>
+            <p class="footer-text">
+                ©2025 All Rights Reserved<br>
+                @* Developed by: Netify Team *@
+            </p>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function() {
+            $('#togglePassword').on('click', function() {
+                var passwordInput = $('#passwordInput');
+                var eyeIcon = $('#eyeIcon');
+                
+                if (passwordInput.attr('type') === 'password') {
+                    passwordInput.attr('type', 'text');
+                    eyeIcon.removeClass('bi-eye').addClass('bi-eye-slash');
+                } else {
+                    passwordInput.attr('type', 'password');
+                    eyeIcon.removeClass('bi-eye-slash').addClass('bi-eye');
+                }
+            });
+        });
+    </script>
+}

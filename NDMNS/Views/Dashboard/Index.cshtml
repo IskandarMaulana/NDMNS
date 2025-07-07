@@ -1,0 +1,1202 @@
+@using System.Globalization
+@using System.Text.RegularExpressions
+@{
+    ViewData["Title"] = "Dashboard";
+    ViewData["Breadcrumb"] = "<li class='breadcrumb-item'><a href='#'>Home</a></li><li class='breadcrumb-item active'>Dashboard</li>";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<link href="~/css/dashboard.css" rel="stylesheet" asp-append-version="true" />
+
+<div class="clearfix"></div>
+
+<div class="row" style="margin: 0px;">
+    <div class="col-md-12 col-sm-12 mt-3">
+        <div class="card shadow-lg border-0" style="border-radius: 20px; overflow: hidden;">
+            <div class="card-body p-0">
+                <div class="dashboard-container">
+                    <!-- Enhanced Header -->
+                    <div class="dashboard-header">
+                        <h1 class="dashboard-title">
+                            <i class="bi bi-speedometer2"></i>
+                            Network Monitoring Dashboard
+                        </h1>
+                        <p class="dashboard-subtitle">
+                            Real-time monitoring and alert system for network
+                        </p>
+                    </div>
+
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show mx-3" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <!-- Enhanced Statistics Cards -->
+                    <div class="stats-grid">
+
+                        <!-- Database Status Card -->
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-icon">
+                                    <i class="bi bi-database"></i>
+                                </div>
+                                <h3 class="stat-title">Database Status</h3>
+                            </div>
+                            <div class="stat-value">
+                                @{
+                                    var dbStatus = "";
+                                    var dbStatusClass = "";
+                                    var dbIcon = "";
+                                    
+                                    // Assuming ViewBag.DatabaseStatus contains the database status info
+                                    if(ViewBag.SystemHealth != null && ViewBag.SystemHealth.Database.Status.Equals("Healthy"))
+                                    {
+                                        dbStatus = "Connected";
+                                        dbStatusClass = "status-connected";
+                                        dbIcon = "bi-check-circle-fill";
+                                    }
+                                    else if(ViewBag.SystemHealth != null && !ViewBag.SystemHealth.Database.Status.Equals("Healthy"))
+                                    {
+                                        dbStatus = "Disconnected";
+                                        dbStatusClass = "status-disconnected";
+                                        dbIcon = "bi-x-circle-fill";
+                                    }
+                                    else
+                                    {
+                                        dbStatus = "Unknown";
+                                        dbStatusClass = "status-error";
+                                        dbIcon = "bi-question-circle-fill";
+                                    }
+                                }
+                                <span class="@dbStatusClass">
+                                    <i class="bi @dbIcon"></i>
+                                    @dbStatus
+                                </span>
+                            </div>
+                            @* <div class="stat-label">
+                                @if(ViewBag.DatabaseStatus != null && ViewBag.DatabaseStatus.ResponseTime != null)
+                                {
+                                    <span>Response time: @ViewBag.DatabaseStatus.ResponseTime ms</span>
+                                }
+                                else
+                                {
+                                    <span>Database connection status</span>
+                                }
+                            </div> *@
+                        </div>
+
+                        <!-- Internet Status Card -->
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-icon">
+                                    <i class="bi bi-globe"></i>
+                                </div>
+                                <h3 class="stat-title">Internet Status</h3>
+                            </div>
+                            <div class="stat-value">
+                                @{
+                                    var internetStatus = "";
+                                    var internetStatusClass = "";
+                                    var internetIcon = "";
+                                    
+                                    // Assuming ViewBag.InternetStatus contains the internet connectivity info
+                                    if(ViewBag.SystemHealth != null && ViewBag.SystemHealth.Internet.Status.Equals("Healthy"))
+                                    {
+                                        internetStatus = "Online";
+                                        internetStatusClass = "status-connected";
+                                        internetIcon = "bi-wifi";
+                                    }
+                                    else if(ViewBag.SystemHealth != null && !ViewBag.SystemHealth.Internet.Status.Equals("Healthy"))
+                                    {
+                                        internetStatus = "Offline";
+                                        internetStatusClass = "status-disconnected";
+                                        internetIcon = "bi-wifi-off";
+                                    }
+                                    else
+                                    {
+                                        internetStatus = "Unknown";
+                                        internetStatusClass = "status-error";
+                                        internetIcon = "bi-exclamation-triangle";
+                                    }
+                                }
+                                <span class="@internetStatusClass">
+                                    <i class="bi @internetIcon"></i>
+                                    @internetStatus
+                                </span>
+                            </div>
+                            @* <div class="stat-label">
+                                @if(ViewBag.InternetStatus != null && ViewBag.InternetStatus.Ping != null)
+                                {
+                                    <span>Ping: @ViewBag.InternetStatus.Ping ms</span>
+                                }
+                                else
+                                {
+                                    <span>Internet connectivity status</span>
+                                }
+                            </div> *@
+                        </div>
+
+                        <!-- Node.js Status Card -->
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-icon">
+                                    @* <i class="bi bi-server"></i> *@
+                                    <img src="~/image/nodejs.svg" style="width: 2.2rem;"/>
+                                </div>
+                                <h3 class="stat-title">Node.js Status</h3>
+                            </div>
+                            <div class="stat-value">
+                                @{
+                                    var nodeStatus = "";
+                                    var nodeStatusClass = "";
+                                    var nodeIcon = "";
+                                    
+                                    if(ViewBag.SystemHealth != null && ViewBag.SystemHealth.NodeJsService.Status.Equals("Healthy"))
+                                    {
+                                        nodeStatus = "Running";
+                                        nodeStatusClass = "status-connected";
+                                        nodeIcon = "bi-play-circle-fill";
+                                    }
+                                    else if(ViewBag.SystemHealth != null && !ViewBag.SystemHealth.NodeJsService.Status.Equals("Healthy"))
+                                    {
+                                        nodeStatus = "Stopped";
+                                        nodeStatusClass = "status-disconnected";
+                                        nodeIcon = "bi-stop-circle-fill";
+                                    }
+                                    else
+                                    {
+                                        nodeStatus = "Unknown";
+                                        nodeStatusClass = "status-error";
+                                        nodeIcon = "bi-question-circle-fill";
+                                    }
+                                }
+                                <span class="@nodeStatusClass">
+                                    <i class="bi @nodeIcon"></i>
+                                    @nodeStatus
+                                </span>
+                            </div>
+                            @* <div class="stat-label">
+                                @if(ViewBag.NodeStatus != null && ViewBag.NodeStatus.Uptime != null)
+                                {
+                                    <span>Uptime: @ViewBag.NodeStatus.Uptime</span>
+                                }
+                                else if(ViewBag.NodeStatus != null && ViewBag.NodeStatus.Port != null)
+                                {
+                                    <span>Port: @ViewBag.NodeStatus.Port</span>
+                                }
+                                else
+                                {
+                                    <span>Node.js service status</span>
+                                }
+                            </div> *@
+                        </div>
+
+                        <!-- WhatsApp Status Card -->
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-icon">
+                                    <i class="bi bi-whatsapp"></i>
+                                </div>
+                                <h3 class="stat-title">WhatsApp Status</h3>
+                            </div>
+                            <div class="stat-value">
+                                @{
+                                    TextInfo textInfo = new CultureInfo("en-US",false).TextInfo;
+                                    var whatsappStatus = "";
+                                    var statusClass = "";
+                                    if(ViewBag.WhatsAppStatus != null && ViewBag.WhatsAppStatus.IsReady && ViewBag.WhatsAppStatus.QrCode == null && ViewBag.WhatsAppStatus.Status == "connected")
+                                    {
+                                        whatsappStatus = textInfo.ToTitleCase(ViewBag.WhatsAppStatus.Status);
+                                        statusClass = "status-connected";
+                                    } else if(ViewBag.WhatsAppStatus != null && !ViewBag.WhatsAppStatus.IsReady && ViewBag.WhatsAppStatus.QrCode != null && ViewBag.WhatsAppStatus.Status == "disconnected")
+                                    {
+                                        whatsappStatus = textInfo.ToTitleCase(ViewBag.WhatsAppStatus.Status);
+                                        statusClass = "status-disconnected";
+                                    } else {
+                                        whatsappStatus = "Unknown";
+                                        statusClass = "status-error";
+                                    }
+                                }
+                                <span class="@statusClass">
+                                    <i class="bi @(whatsappStatus.ToLower() == "connected" ? "bi-check-circle-fill" : whatsappStatus.ToLower() == "disconnected" ? "bi-x-circle-fill" : "bi-question-circle-fill")"></i>
+                                    @whatsappStatus
+                                </span>
+                            </div>
+                            @* <div class="stat-label">WhatsApp connection status</div> *@
+                        </div>
+
+                        <!-- Networks Down Card -->
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-icon">
+                                    <i class="bi bi-wifi-off"></i>
+                                </div>
+                                <h3 class="stat-title">Networks Down</h3>
+                            </div>
+                            <div class="stat-value">@(ViewBag.DownNetworks?.Count ?? 0)</div>
+                            <div class="stat-label">Currently offline networks</div>
+                        </div>
+
+                        <!-- Messages Sent Card -->
+                        <div class="stat-card" onclick="loadMessageModal()" style="cursor: pointer;">
+                            <div class="stat-card-header">
+                                <div class="stat-icon">
+                                    <i class="bi bi-chat-dots"></i>
+                                </div>
+                                <h3 class="stat-title">Messages Sent</h3>
+                            </div>
+                            <div class="stat-value">@(ViewBag.MessageCount ?? 0)</div>
+                            <div class="stat-label">Total alert messages sent</div>
+                        </div>
+
+                        <!-- Current User Card -->
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-icon">
+                                    <i class="bi bi-person-badge"></i>
+                                </div>
+                                <h3 class="stat-title">Current User</h3>
+                            </div>
+                            <div class="stat-value" style="font-size: 1.4rem; line-height: 1.2;">
+                                <i class="bi bi-person-circle" style="color: #ffc107; margin-right: 8px;"></i>
+                                @(ViewBag.UserName ?? "Unknown User")
+                            </div>
+                            <div class="stat-label">
+                                <i class="bi bi-shield-check"></i>
+                                @(ViewBag.UserRole ?? "No Role Assigned")
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Enhanced Content Grid -->
+                    <div class="content-grid">
+                        <!-- Latest Message Card -->
+                        <div class="content-card">
+                            <div class="content-card-header">
+                                <div class="content-icon">
+                                    <i class="bi bi-envelope-paper"></i>
+                                </div>
+                                <h3 class="content-title">Latest Alert Message</h3>
+                            </div>
+                            @if (ViewBag.LatestMessage != null)
+                            {
+                                <div class="message-content">
+                                    <div class="message-subject">
+                                        <i class="bi bi-exclamation-diamond text-warning"></i>
+                                        @ViewBag.LatestMessage.DowntimeDescription
+                                    </div>
+                                    <div class="message-body">
+                                        <i class="bi bi-chat-quote"></i>
+                                            @Html.Raw(Regex.Replace(ViewBag.LatestMessage.Text, @"\*(.*?)\*", "<strong>$1</strong>"))
+                                    </div>
+                                    <div class="message-details">
+                                        <div class="mb-1">
+                                            <i class="bi bi-clock-history"></i>
+                                            <strong>Sent:</strong> @ViewBag.LatestMessage.Date.ToString("dd/MM/yyyy HH:mm:ss")
+                                        </div>
+                                        <div>
+                                            <i class="bi bi-person-check"></i>
+                                            <strong>Recipient:</strong> @ViewBag.LatestMessage.RecipientName
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="no-data">
+                                    <i class="bi bi-inbox"></i>
+                                    <div class="mt-2">
+                                        <strong>No Alert Messages</strong><br>
+                                        <span class="text-muted">No messages have been sent yet</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Latest Email Card -->
+                        <div class="content-card">
+                            <div class="content-card-header">
+                                <div class="content-icon">
+                                    <i class="bi bi-envelope-at-fill"></i>
+                                </div>
+                                <h3 class="content-title">Latest Email Alert</h3>
+                            </div>
+                            @if (ViewBag.LatestEmail != null)
+                            {
+                                <div class="email-content">
+                                    <div class="email-subject">
+                                        <i class="bi bi-envelope-open text-primary"></i>
+                                        @ViewBag.LatestEmail.Subject
+                                    </div>
+                                    <div class="email-body">
+                                        <i class="bi bi-file-text"></i>
+                                        @Html.Raw(ViewBag.LatestEmail.Body)
+                                    </div>
+                                    <div class="email-details">
+                                        <div class="mb-1">
+                                            <i class="bi bi-clock-history"></i>
+                                            <strong>Sent:</strong> @ViewBag.LatestEmail.Date.ToString("dd/MM/yyyy HH:mm:ss")
+                                        </div>
+                                        <div>
+                                            <i class="bi bi-envelope-check"></i>
+                                            <strong>To:</strong> @ViewBag.LatestEmail.To
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="no-data">
+                                    <i class="bi bi-mailbox"></i>
+                                    <div class="mt-2">
+                                        <strong>No Email Alerts</strong><br>
+                                        <span class="text-muted">No emails have been sent yet</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Enhanced Down Networks Section -->
+                    <div class="content-card down-networks-grid">
+                        <div class="content-card-header">
+                            <div class="content-icon">
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+                            </div>
+                            <h3 class="content-title">
+                                Networks Currently Down
+                                @if (ViewBag.DownNetworks != null && ViewBag.DownNetworks.Count > 0)
+                                {
+                                    <span class="badge bg-danger ms-2">@ViewBag.DownNetworks.Count</span>
+                                }
+                            </h3>
+                        </div>
+                        @if (ViewBag.DownNetworks != null && ViewBag.DownNetworks.Count > 0)
+                        {
+                            @foreach (var network in ViewBag.DownNetworks)
+                            {
+                                <div class="network-item"  onclick="loadNetworkMessages('@network.Id', '@network.Name')" style="cursor: pointer;">
+                                    <div class="network-info">
+                                        <div class="network-status"></div>
+                                        <div>
+                                            <div class="network-name">
+                                                <i class="bi bi-router me-2"></i>
+                                                @network.Name
+                                            </div>
+                                            <div class="network-location">
+                                                <i class="bi bi-geo-alt me-1"></i>
+                                                @network.SiteName
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="network-time">
+                                        <i class="bi bi-clock-fill me-1"></i>
+                                        Down since: @network.LastUpdate.ToString("dd/MM/yyyy HH:mm") WIB
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="no-data">
+                                <i class="bi bi-check2-circle text-success"></i>
+                                <div class="mt-2">
+                                    <strong class="text-success">All Systems Operational</strong><br>
+                                    <span class="text-muted">All networks are currently running smoothly</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Status Indicator -->
+                    <div class="row mt-3 px-3">
+                        <div class="col-12">
+                            <div class="text-center">
+                                <small class="text-muted">
+                                    <i class="bi bi-arrow-clockwise loading" id="refresh-indicator" style="display: none;"></i>
+                                    <span id="last-updated">Last updated: <span id="update-time"></span></span>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="messageModalLabel">
+                    <i class="bi bi-chat-dots"></i> Message History
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <button class="btn btn-secondary btn-sm" onclick="resetMessageFilters()">
+                            <i class="bi bi-arrow-clockwise"></i> Reset Filters
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table id="messageTable" class="table table-striped table-bordered datatable-fixed-header" style="width:100%">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="text-align: center;">No.</th>
+                                <th style="text-align: center;">Date</th>
+                                <th style="text-align: center;">Downtime</th>
+                                <th style="text-align: center;">Recipient</th>
+                                <th style="text-align: center;">Text</th>
+                                <th style="text-align: center;">Image</th>
+                                <th style="text-align: center;">Type</th>
+                                <th style="text-align: center;">Category</th>
+                                <th style="text-align: center;">Status</th>
+                            </tr>
+                            <tr>
+                                <th></th>
+                                <th>
+                                    <input type="date" class="form-control form-control-sm" id="modal_date_filter"
+                                            onchange="searchMessageModal()">
+                                </th>
+                                <th>
+                                    <input type="text" class="form-control form-control-sm name-input" id="modal_downtime_filter"
+                                            onkeypress="handleModalKeyPress(event)">
+                                </th>
+                                <th>
+                                    <input type="text" class="form-control form-control-sm name-input" id="modal_receiver_filter"
+                                            onkeypress="handleModalKeyPress(event)">
+                                </th>
+                                <th>
+                                    <input type="text" class="form-control form-control-sm email-input" id="modal_text_filter"
+                                            onkeypress="handleModalKeyPress(event)">
+                                </th>
+                                <th>
+                                    <select class="form-select form-select-sm" id="modal_image_filter" onchange="searchMessageModal()">
+                                        <option value="">All</option>
+                                        <option value="with_image">With Image</option>
+                                        <option value="without_image">Without Image</option>
+                                    </select>
+                                </th>
+                                <th>
+                                    <select class="form-select form-select-sm" id="modal_type_filter" onchange="searchMessageModal()">
+                                        <option value="">All</option>
+                                        <option value="1">Downtime</option>
+                                        <option value="2">Uptime</option>
+                                        <option value="3">Intermittent</option>
+                                    </select>
+                                </th>
+                                <th>
+                                    <select class="form-select form-select-sm" id="modal_category_filter" onchange="searchMessageModal()">
+                                        <option value="">All</option>
+                                        <option value="1">Alert</option>
+                                        <option value="2">Response</option>
+                                        <option value="3">Update</option>
+                                    </select>
+                                </th>
+                                <th>
+                                    <select class="form-select form-select-sm" id="modal_status_filter" onchange="searchMessageModal()">
+                                        <option value="">All</option>
+                                        <option value="1">Sent</option>
+                                        <option value="2">Responded</option>
+                                    </select>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="messageTableBody">
+                            @{
+                                int no = 1;
+                            }
+                            @if (ViewBag.MessagesData != null)
+                            {
+                                @foreach (var row in ViewBag.MessagesData)
+                                {
+                                    <tr>
+                                        <td>@(no++)</td>
+                                        <td>@row.Date.ToString("dd/MM/yyyy HH:mm WIB")</td>
+                                        <td>@row.DowntimeDescription</td>
+                                        <td>@row.RecipientName</td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(row.Text))
+                                            {
+                                                @Html.Raw(Regex.Replace(row.Text, @"\*(.*?)\*", "<strong>$1</strong>"))
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                        <td style="text-align: center; vertical-align: middle;" data-image="@row.Image">
+                                            @if (!string.IsNullOrEmpty(row.Image))
+                                            {
+                                                <img src="@row.Image" 
+                                                        alt="Message Image" 
+                                                        class="img-thumbnail" 
+                                                        style="max-width: 80px; max-height: 80px; cursor: pointer;"
+                                                        onclick="showImageModal('@Html.Raw(Html.Encode(row.Image))')"
+                                                        data-bs-toggle="tooltip"
+                                                        data-bs-placement="top"
+                                                        title="Click to view full image">
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">
+                                                    <i class="bi bi-image" style="font-size: 1.2em;"></i>
+                                                </span>
+                                            }
+                                        </td>
+                                        <td style="text-align: center;" data-type="@row.Type">
+                                            @switch (row.Type)
+                                            {
+                                                case 1:
+                                                    <span class="badge bg-danger">Downtime</span>
+                                                    break;
+                                                case 2:
+                                                    <span class="badge bg-success">Uptime</span>
+                                                    break;
+                                                case 3:
+                                                    <span class="badge bg-warning">Intermittent</span>
+                                                    break;
+                                                default:
+                                                    <span class="badge bg-light text-dark">Unknown</span>
+                                                    break;
+                                            }
+                                        </td>
+                                        <td style="text-align: center;" data-category="@row.Category">
+                                            @switch (row.Category)
+                                            {
+                                                case 1:
+                                                    <span class="badge bg-info">Alert</span>
+                                                    break;
+                                                case 2:
+                                                    <span class="badge bg-success">Response</span>
+                                                    break;
+                                                case 3:
+                                                    <span class="badge bg-warning">Update</span>
+                                                    break;
+                                                default:
+                                                    <span class="badge bg-light text-dark">Unknown</span>
+                                                    break;
+                                            }
+                                        </td>
+                                        <td style="text-align: center;" data-status="@row.Status">
+                                            @switch (row.Status)
+                                            {
+                                                case 1:
+                                                    <span class="badge bg-success">Sent</span>
+                                                    break;
+                                                case 2:
+                                                    <span class="badge bg-info">Responded</span>
+                                                    break;
+                                                default:
+                                                    <span class="badge bg-light text-dark">Unknown</span>
+                                                    break;
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="@Url.Action("Index", "Message")" class="btn btn-primary">
+                    <i class="bi bi-arrow-right"></i> View Full Message Page
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalImageModal" tabindex="-1" aria-labelledby="modalImageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalImageModalLabel">Image Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="modalFullImage" src="" alt="Full Image" class="img-fluid">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="networkMessagesModal" tabindex="-1" aria-labelledby="networkMessagesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="networkMessagesModalLabel">
+                    <i class="bi bi-router"></i> Network Messages
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="networkMessagesContent">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading network messages...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.bootstrap5.min.css">
+
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
+    <script src="~/js/dashboard.js" asp-append-version="true"></script>
+
+    <script>
+        jQuery(document).ready(function($) {
+            initializeDashboard();
+            searchMessageModal();
+            initializeMessageTable();
+            updateTimestamp();
+            setTimeout(function() {
+                $('.alert').fadeOut('slow');
+            }, 5000);
+        });
+
+        function initializeDashboard() {
+            // Add smooth fade-in animations for cards
+            $('.fade-in').each(function(index) {
+                var $card = $(this);
+                var delay = $card.data('delay') || (index * 100);
+                
+                setTimeout(function() {
+                    $card.addClass('show');
+                }, delay);
+            });
+
+            // Add hover effects for stat cards
+            $('.stat-card').hover(
+                function() {
+                    $(this).find('.stat-icon').addClass('animate');
+                },
+                function() {
+                    $(this).find('.stat-icon').removeClass('animate');
+                }
+            );
+
+            // Add click ripple effect for cards
+            $('.stat-card, .content-card').on('click', function(e) {
+                createRipple(e, this);
+            });
+        }
+
+        function updateTimestamp() {
+            var now = new Date();
+            var timeString = now.toLocaleString('id-ID', {
+                day: '2-digit',
+                month: '2-digit', 
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            $('#update-time').text(timeString);
+        }
+
+        function refreshDashboard() {
+            // Show loading indicator
+            $('#refresh-indicator').show();
+            
+            // Simulate refresh process
+            setTimeout(function() {
+                location.reload();
+            }, 1000);
+        }
+
+        function createRipple(event, element) {
+            var $element = $(element);
+            var circle = $('<span class="ripple"></span>');
+            var d = Math.max($element.outerWidth(), $element.outerHeight());
+            
+            circle.css({
+                height: d,
+                width: d,
+                position: 'absolute',
+                borderRadius: '50%',
+                background: 'rgba(255, 193, 7, 0.3)',
+                transform: 'scale(0)',
+                animation: 'ripple 0.6s linear',
+                zIndex: 1
+            });
+            
+            var rect = element.getBoundingClientRect();
+            circle.css({
+                left: event.clientX - rect.left - d / 2,
+                top: event.clientY - rect.top - d / 2
+            });
+            
+            $element.css('position', 'relative').css('overflow', 'hidden');
+            $element.append(circle);
+            
+            setTimeout(function() {
+                circle.remove();
+            }, 600);
+        }
+
+        // Add CSS animation for ripple effect
+        $('<style>')
+            .prop('type', 'text/css')
+            .html('\
+                @@keyframes ripple {\
+                    to {\
+                        transform: scale(4);\
+                        opacity: 0;\
+                    }\
+                }\
+                .animate {\
+                    animation: bounce 0.5s ease-in-out;\
+                }\
+                @@keyframes bounce {\
+                    0%, 100% { transform: scale(1); }\
+                    50% { transform: scale(1.1); }\
+                }\
+            ')
+            .appendTo('head');
+
+        // Network status monitoring
+        function monitorNetworkStatus() {
+            $('.network-status').each(function() {
+                var $status = $(this);
+                var randomDelay = Math.random() * 2000;
+                
+                setTimeout(function() {
+                    $status.css('animation-delay', randomDelay + 'ms');
+                }, randomDelay);
+            });
+        }
+
+        // Counter animation for stat values
+        function animateCounters() {
+            $('.stat-value').each(function() {
+                var $counter = $(this);
+                var text = $counter.text().trim();
+                
+                // Only animate if it's a number
+                if (!isNaN(text) && text !== '') {
+                    var target = parseInt(text);
+                    var current = 0;
+                    var increment = target / 20;
+                    var timer = setInterval(function() {
+                        current += increment;
+                        if (current >= target) {
+                            current = target;
+                            clearInterval(timer);
+                        }
+                        $counter.text(Math.floor(current));
+                    }, 50);
+                }
+            });
+        }
+
+        // Initialize counter animation after page load
+        setTimeout(function() {
+            animateCounters();
+            monitorNetworkStatus();
+        }, 800);
+
+        // Add smooth scrolling for better UX
+        $('html').css('scroll-behavior', 'smooth');
+
+        // Enhanced error handling
+        window.addEventListener('error', function(e) {
+            console.log('Dashboard Error:', e.error);
+        });
+
+        // Keyboard shortcuts
+        $(document).keydown(function(e) {
+            // Refresh dashboard with F5 or Ctrl+R
+            if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
+                e.preventDefault();
+                refreshDashboard();
+            }
+        });
+
+        // Add tooltips for better user experience
+        $('[title]').each(function() {
+            $(this).attr('data-bs-toggle', 'tooltip');
+        });
+
+        // Initialize Bootstrap tooltips if available
+        if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
+
+        // Performance monitoring
+        var performanceStart = performance.now();
+        $(window).on('load', function() {
+            var loadTime = performance.now() - performanceStart;
+            console.log('Dashboard loaded in ' + Math.round(loadTime) + 'ms');
+        });
+
+        // Add visual feedback for user interactions
+        $('.stat-card, .content-card').on('mouseenter', function() {
+            $(this).addClass('shadow-lg');
+        }).on('mouseleave', function() {
+            $(this).removeClass('shadow-lg');
+        });
+
+        // Auto-scroll to error alerts if present
+        if ($('.alert-danger').length > 0) {
+            setTimeout(function() {
+                $('html, body').animate({
+                    scrollTop: $('.alert-danger').offset().top - 100
+                }, 1000);
+            }, 500);
+        }
+    
+        var messageDataTable;
+        var allMessages = [];
+
+        function initializeMessageTable() {
+            messageDataTable = $('#messageTable').DataTable({
+                fixedHeader: true,
+                orderCellsTop: true,
+                responsive: true,
+                lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+                scrollCollapse: true,
+                scrollX: true,
+                scrollY: '35vh',
+                columnDefs: [
+                    {
+                        targets: 0,
+                        searchable: false,
+                        orderable: false,
+                        width: '40px',
+                        className: 'dt-body-center',
+                    },
+                    {
+                        targets: 1,
+                        width: '120px'
+                    },
+                    {
+                        targets: [2, 3],
+                        width: '120px'
+                    },
+                    {
+                        targets: 4,
+                        width: '200px'
+                    },
+                    {
+                        targets: 5,
+                        searchable: false,
+                        orderable: false,
+                        width: '150px',
+                    },
+                    {
+                        targets: [6, 7, 8],
+                        searchable: false,
+                        orderable: true,
+                        width: '70px',
+                        className: 'dt-body-center'
+                    },
+                ],
+                order: [[1, 'desc']]
+            }).draw();
+        }
+
+        function loadMessageModal() {
+            $('#messageModal').modal('show');
+        }
+
+        function searchMessageModal() {
+            var date = $('#modal_date_filter').val();
+            var downtime = $('#modal_downtime_filter').val();
+            var receiver = $('#modal_receiver_filter').val();
+            var text = $('#modal_text_filter').val();
+            var imageFilter = $('#modal_image_filter').val();
+            var typeFilter = $('#modal_type_filter').val();
+            var categoryFilter = $('#modal_category_filter').val();
+            var statusFilter = $('#modal_status_filter').val();
+
+            if (messageDataTable) {
+                messageDataTable.columns().search('');
+
+                if (date) {
+                    var formattedDate = new Date(date).toLocaleDateString('en-GB');
+                    messageDataTable.columns(1).search(formattedDate);
+                }
+
+                messageDataTable.columns(2).search(downtime);
+                messageDataTable.columns(3).search(receiver);
+                messageDataTable.columns(4).search(text);
+                
+                // Custom filter untuk modal
+                $.fn.dataTable.ext.search.push(
+                    function (settings, data, dataIndex) {
+                        if (settings.nTable.id !== 'messageTable') {
+                            return true;
+                        }
+                        
+                        var row = messageDataTable.row(dataIndex).node();
+                        
+                        // Image filter
+                        if (imageFilter && imageFilter === 'with_image') {
+                            var imageData = $(row).find('td:eq(5)').attr('data-image');
+                            if (!imageData || imageData === '') {
+                                return false;
+                            }
+                        } else if (imageFilter && imageFilter === 'without_image') {
+                            var imageData = $(row).find('td:eq(5)').attr('data-image');
+                            if (imageData && imageData !== '') {
+                                return false;
+                            }
+                        }
+                        
+                        // Type filter
+                        if (typeFilter && typeFilter !== '') {
+                            var typeData = $(row).find('td:eq(6)').attr('data-type');
+                            if (typeData != typeFilter) {
+                                return false;
+                            }
+                        }
+                        
+                        // Category filter
+                        if (categoryFilter && categoryFilter !== '') {
+                            var categoryData = $(row).find('td:eq(7)').attr('data-category');
+                            if (categoryData != categoryFilter) {
+                                return false;
+                            }
+                        }
+                        
+                        // Status filter
+                        if (statusFilter && statusFilter !== '') {
+                            var statusData = $(row).find('td:eq(8)').attr('data-status');
+                            if (statusData != statusFilter) {
+                                return false;
+                            }
+                        }
+                        
+                        return true;
+                    }
+                );
+                
+                messageDataTable.draw();
+                $.fn.dataTable.ext.search.pop();
+            }
+        }
+
+        function handleModalKeyPress(event) {
+            if (event.key === "Enter") {
+                searchMessageModal();
+            }
+        }
+
+        function resetMessageFilters() {
+            $('#modal_date_filter').val('');
+            $('#modal_downtime_filter').val('');
+            $('#modal_receiver_filter').val('');
+            $('#modal_text_filter').val('');
+            $('#modal_image_filter').val('');
+            $('#modal_type_filter').val('');
+            $('#modal_category_filter').val('');
+            $('#modal_status_filter').val('');
+
+            if (messageDataTable) {
+                messageDataTable.search('').columns().search('').draw();
+            }
+        }
+
+        function showImageModal(imageSrc) {
+            $('#modalFullImage').attr('src', imageSrc);
+            $('#modalImageModal').modal('show');
+        }
+    
+        function loadNetworkMessages(networkId, networkName) {
+            $('#networkMessagesModalLabel').html(`<i class="bi bi-router"></i> Messages for ${networkName}`);
+            
+            $('#networkMessagesContent').html(`
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading network messages...</p>
+                </div>
+            `);
+            
+            $('#networkMessagesModal').modal('show');
+            
+            $.ajax({
+                url: '/Dashboard/GetNetworkMessages',
+                type: 'GET',
+                data: { networkId: networkId },
+                success: function(response) {
+                    if (response.success && response.data) {
+                        displayNetworkMessages(response.data, networkName);
+                    } else {
+                        showNetworkMessagesError(response.message || 'Failed to load messages');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    showNetworkMessagesError('An error occurred while fetching messages: ' + error);
+                }
+            });
+        }
+
+        function displayNetworkMessages(messages, networkName) {
+            if (!messages || messages.length === 0) {
+                $('#networkMessagesContent').html(`
+                    <div class="text-center">
+                        <i class="bi bi-inbox" style="font-size: 3rem; color: #6c757d;"></i>
+                        <h5 class="mt-3">No Messages Found</h5>
+                        <p class="text-muted">No messages have been sent for this network yet.</p>
+                    </div>
+                `);
+                return;
+            }
+            
+            let messagesHtml = `
+                <div class="mb-3">
+                    <h6><i class="bi bi-info-circle"></i> Total Messages: ${messages.length}</h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered datatable-fixed-header">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Date</th>
+                                <th>Recipient</th>
+                                <th>Message</th>
+                                <th>Type</th>
+                                <th>Category</th>
+                                <th>Status</th>
+                                <th>Image</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            messages.forEach(function(message) {
+                // Format message text with bold formatting
+                let formattedText = message.text ? message.text.replace(/\*(.*?)\*/g, '<strong>$1</strong>') : '-';
+                
+                // Format date
+                let formattedDate = new Date(message.date).toLocaleString('id-ID', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                // Type badge
+                let typeBadge = '';
+                switch(message.type) {
+                    case 1:
+                        typeBadge = '<span class="badge bg-danger">Downtime</span>';
+                        break;
+                    case 2:
+                        typeBadge = '<span class="badge bg-success">Uptime</span>';
+                        break;
+                    case 3:
+                        typeBadge = '<span class="badge bg-warning">Intermittent</span>';
+                        break;
+                    default:
+                        typeBadge = '<span class="badge bg-light text-dark">Unknown</span>';
+                }
+                
+                // Category badge
+                let categoryBadge = '';
+                switch(message.category) {
+                    case 1:
+                        categoryBadge = '<span class="badge bg-info">Alert</span>';
+                        break;
+                    case 2:
+                        categoryBadge = '<span class="badge bg-success">Response</span>';
+                        break;
+                    case 3:
+                        categoryBadge = '<span class="badge bg-warning">Update</span>';
+                        break;
+                    default:
+                        categoryBadge = '<span class="badge bg-light text-dark">Unknown</span>';
+                }
+                
+                // Status badge
+                let statusBadge = '';
+                switch(message.status) {
+                    case 1:
+                        statusBadge = '<span class="badge bg-success">Sent</span>';
+                        break;
+                    case 2:
+                        statusBadge = '<span class="badge bg-info">Responded</span>';
+                        break;
+                    default:
+                        statusBadge = '<span class="badge bg-light text-dark">Unknown</span>';
+                }
+                
+                // Image column
+                let imageColumn = '';
+                if (message.image && message.image.trim() !== '') {
+                    imageColumn = `
+                        <img src="${message.image}" 
+                            alt="Message Image" 
+                            class="img-thumbnail" 
+                            style="max-width: 60px; max-height: 60px; cursor: pointer;"
+                            onclick="showImageModal('${message.image.replace(/'/g, "\\'")}')"
+                            title="Click to view full image">
+                    `;
+                } else {
+                    imageColumn = '<span class="text-muted"><i class="bi bi-image"></i></span>';
+                }
+                
+                messagesHtml += `
+                    <tr>
+                        <td>${formattedDate}</td>
+                        <td>${message.recipientName || '-'}</td>
+                        <td style="max-width: 300px; word-wrap: break-word;">${formattedText}</td>
+                        <td>${typeBadge}</td>
+                        <td>${categoryBadge}</td>
+                        <td>${statusBadge}</td>
+                        <td class="text-center">${imageColumn}</td>
+                    </tr>
+                `;
+            });
+            
+            messagesHtml += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            $('#networkMessagesContent').html(messagesHtml);
+        }
+
+        function showNetworkMessagesError(errorMessage) {
+            $('#networkMessagesContent').html(`
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Error:</strong> ${errorMessage}
+                </div>
+            `);
+        }
+    </script>
+}

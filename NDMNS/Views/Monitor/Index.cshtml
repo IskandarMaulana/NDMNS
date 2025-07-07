@@ -1,0 +1,145 @@
+﻿@{
+    ViewData["Title"] = "Network Monitor";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid">
+    <!-- Settings Panel -->
+    <div id="settingsPanel" class="row mb-3">
+        <div class="col">
+            <form id="settingsForm">
+                <div class="row">
+                    <div class="col-md-2">
+                        <label for="pingAttempts" class="form-label">Ping Attempts</label>
+                        <select id="pingAttempts" class="form-select" required>
+                            <option value="" disabled>Select Attempts</option>
+                            <option value="1">1 Attempt</option>
+                            <option value="3">3 Attempts</option>
+                            <option value="5">5 Attempts</option>
+                            <option value="10">10 Attempts</option>
+                            <option value="15">15 Attempts</option>
+                            <option value="20">20 Attempts</option>
+                            <option value="25">25 Attempts</option>
+                            <option value="30">30 Attempts</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="pingTimeout" class="form-label">Ping Timeout</label>
+                        <select id="pingTimeout" class="form-select" required>
+                            <option value="" disabled>Select Timeout</option>
+                            <option value="1000">1 Second</option>
+                            <option value="2000">2 Seconds</option>
+                            <option value="3000">3 Seconds</option>
+                            <option value="4000">4 Seconds</option>
+                            <option value="5000">5 Seconds</option>
+                            <option value="10000">10 Seconds</option>
+                            <option value="15000">15 Seconds</option>
+                            <option value="30000">30 Seconds</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="pingInterval" class="form-label">Ping Interval</label>
+                        <select id="pingInterval" class="form-select" required>
+                            <option value="" disabled>Select Interval</option>
+                            <option value="60000">1 Minute</option>
+                            <option value="120000">2 Minutes</option>
+                            <option value="180000">3 Minutes</option>
+                            <option value="240000">4 Minutes</option>
+                            <option value="300000">5 Minutes</option>
+                            <option value="600000">10 Minutes</option>
+                            <option value="900000">15 Minutes</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="groupBy" class="form-label">Group By</label>
+                        <select id="groupBy" class="form-select">
+                            <option value="">No Grouping</option>
+                            <option value="location">Location</option>
+                            <option value="site">Site</option>
+                            <option value="isp">ISP</option>
+                            <option value="location-isp">Location & ISP</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Networks Grid -->
+    <div class="row">
+        <div class="col">
+            <div id="network-grid" class="network-container">
+                <!-- Networks will be rendered here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/monitor.js" asp-append-version="true"></script>
+
+    <script>
+        $(document).ready(function () {
+            fetchSettings();
+            fetchNetworkData();
+
+            setInterval(() => {
+                renderNetworks(networksData);
+            }, 60000);
+
+            setInterval(checkProlongedDowntime, 60000);
+
+            $('#pingAttempts').on('change', async function() {
+                const newValue = $(this).val();
+                const data = settingsData.find(s => s.code === 'PING_ATTEMPTS');
+                const oldValue = data.value;
+                
+                data.value = newValue;
+
+                try {
+                    await updateSetting(data);
+                } catch (error) {
+                    data.value = oldValue;
+                    $(this).val(oldValue);
+                }
+            });
+
+            $('#pingTimeout').on('change', async function() {
+                const newValue = $(this).val();
+                const data = settingsData.find(s => s.code === 'PING_TIMEOUT');
+                const oldValue = data.value;
+                
+                data.value = newValue;
+
+                try {
+                    await updateSetting(data);
+                } catch (error) {
+                    data.value = oldValue;
+                    $(this).val(oldValue);
+                }
+            });
+
+            $('#pingInterval').on('change', async function() {
+                const newValue = $(this).val();
+                const data = settingsData.find(s => s.code === 'PING_INTERVAL');
+                const oldValue = data.value;
+                
+                data.value = newValue;
+
+                try {
+                    await updateSetting(data);
+                } catch (error) {
+                    data.value = oldValue;
+                    $(this).val(oldValue);
+                }
+            });
+
+            $('#groupBy').on('change', function() {
+                currentGroupBy = $(this).val();
+                renderNetworks(networksData);
+            });
+
+            startConnection();
+        });
+</script>
+}

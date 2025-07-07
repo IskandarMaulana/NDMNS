@@ -1,0 +1,197 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Netify</title>
+
+    <link rel="icon" type="image/png" href="~/image/logo.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="~/image/logo.png" sizes="16x16" />
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/layout-admin.css" asp-append-version="true" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+
+    <script src="~/js/floating-ui.core.umd.min.js"></script>
+    <script src="~/js/floating-ui.dom.umd.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/3.1.18/signalr.min.js"></script>
+</head>
+
+<body>
+    <div class="main-wrapper" style="margin-left: 0px;">
+        <nav class="navbar navbar-expand-lg top-navbar">
+            <div class="container-fluid">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Dashboard" asp-action="Index">
+                            <i class="bi bi-house-fill me-2"></i>
+                            Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Monitor" asp-action="Index">
+                            <i class="bi bi-activity me-2"></i>
+                            Live Monitoring
+                        </a>
+                    </li>
+                </ul>
+
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown">
+                        <div class="nav-link">
+                            <i class="bi bi-clock-fill me-2"></i>
+                            <span id="current-time"></span>
+                        </div>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle me-2"></i>
+                            @(ViewBag.UserName ?? "Unknown User")
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li>
+                                <h6 class="dropdown-header">
+                                    <i class="bi bi-person-badge"></i>
+                                    User Account
+                                </h6>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a class="dropdown-item" asp-controller="WhatsAppClient" asp-action="Index">
+                                    <i class="bi bi-chat-square-dots"></i>
+                                    WhatsApp Client
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" asp-controller="Setting" asp-action="Index">
+                                    <i class="bi bi-gear"></i>
+                                    Settings
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#">
+                                    <i class="bi bi-person-gear"></i>
+                                    Profile Settings
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#">
+                                    <i class="bi bi-shield-lock"></i>
+                                    Change Password
+                                </a>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a class="dropdown-item" asp-controller="Auth" asp-action="Logout">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                    Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="refreshPage()">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        @if (ViewData["Breadcrumb"] != null)
+        {
+            <div class="breadcrumb-section">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        @Html.Raw(ViewData["Breadcrumb"])
+                    </ol>
+                </nav>
+            </div>
+        }
+
+        <div class="content-wrapper">
+            @if (ViewData["Title"] != null && ViewData["Title"].ToString() != "Dashboard")
+            {
+                <div class="page-title">
+                    <h3>@ViewData["Title"]</h3>
+                </div>
+            }
+
+            <main role="main">
+                @RenderBody()
+            </main>
+        </div>
+
+        <footer class="footer mt-4">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="footer-text">
+                            <strong>NETIFY</strong> Network Monitoring System
+                            <span class="text-muted">- Version 2.0.1</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner">
+            <div class="spinner-border text-warning" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div class="loading-text">Loading...</div>
+        </div>
+    </div>
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        jQuery(document).ready(function ($) {
+            function updateTime() {
+                const now = new Date();
+                const timeString = now.toLocaleString('en-US', {
+                    weekday: 'short',
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                $('#current-time').text(timeString);
+            }
+
+            updateTime();
+            setInterval(updateTime, 1000);
+
+            window.addEventListener('error', function (e) {
+                console.error('Layout Error:', e.error);
+            });
+        });
+
+        window.addEventListener('beforeprint', function () {
+            document.body.classList.add('printing');
+        });
+
+        window.addEventListener('afterprint', function () {
+            document.body.classList.remove('printing');
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+
+</html>

@@ -1,0 +1,225 @@
+@model NDMNS.Models.Shift
+@{
+    ViewData["Title"] = "Update Shift";
+    ViewData["Breadcrumb"] = "<li class='breadcrumb-item'><a href='#'>Home</a></li><li class='breadcrumb-item'><a href='#'>Master Data</a></li><li class='breadcrumb-item'><a asp-controller='Shift' asp-action='Index'>Shift</a></li><li class='breadcrumb-item active'>Update</li>";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="clearfix"></div>
+
+<div class="col-sm-12">
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <form asp-action="Update" method="post">
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(model => model.Id)
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="UserId" class="form-label">User <span class="text-danger">*</span></label>
+                    <select asp-for="UserId" class="form-select">
+                        <option value="" disabled>-- Choose User --</option>
+                        @if (ViewBag.Users != null)
+                        {
+                            @foreach (var user in ViewBag.Users)
+                            {
+                                <option value="@user.Id">
+                                    @(user.Name ?? "Unknown User")
+                                </option>
+                            }
+                        }
+                    </select>
+                    <span asp-validation-for="UserId" class="text-danger"></span>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="StartDate" class="form-label">Start Date <span class="text-danger">*</span></label>
+                    <input asp-for="StartDate" class="form-control" type="date" />
+                    <span asp-validation-for="StartDate" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="EndDate" class="form-label">End Date <span class="text-danger">*</span></label>
+                    <input asp-for="EndDate" class="form-control" type="date" />
+                    <span asp-validation-for="EndDate" class="text-danger"></span>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Shift Type <span class="text-danger">*</span></label>
+                    <select id="shiftType" class="form-select">
+                        <option value="" disabled>-- Choose Shift Type --</option>
+                        <option value="morning">Morning Shift (06:00 - 14:00)</option>
+                        <option value="afternoon">Afternoon Shift (14:00 - 22:00)</option>
+                        <option value="night">Night Shift (22:00 - 06:00)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="StartTime" class="form-label">Start Time <span class="text-danger">*</span></label>
+                    <input asp-for="StartTime" class="form-control" type="time" readonly />
+                    <span asp-validation-for="StartTime" class="text-danger"></span>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="EndTime" class="form-label">End Time <span class="text-danger">*</span></label>
+                    <input asp-for="EndTime" class="form-control" type="time" readonly />
+                    <span asp-validation-for="EndTime" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="d-flex justify-content-between">
+                    <a asp-controller="Shift" asp-action="Index" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </a>
+                    @if (ViewBag.IsTeamLeader == true)
+                    {
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Save
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            setTimeout(function() {
+                $('.alert').fadeOut('slow');
+            }, 5000);
+            
+            setCurrentShiftType();
+            
+            $('#shiftType').on('change', function() {
+                var shiftType = $(this).val();
+                var startTime = '';
+                var endTime = '';
+                
+                switch(shiftType) {
+                    case 'morning':
+                        startTime = '06:00';
+                        endTime = '14:00';
+                        break;
+                    case 'afternoon':
+                        startTime = '14:00';
+                        endTime = '22:00';
+                        break;
+                    case 'night':
+                        startTime = '22:00';
+                        endTime = '06:00';
+                        break;
+                }
+                
+                $('#StartTime').val(startTime);
+                $('#EndTime').val(endTime);
+            });
+
+            function setCurrentShiftType() {
+                var startTime = $('#StartTime').val();
+                if (startTime === '06:00') {
+                    $('#shiftType').val('morning');
+                } else if (startTime === '14:00') {
+                    $('#shiftType').val('afternoon');
+                } else if (startTime === '22:00') {
+                    $('#shiftType').val('night');
+                }
+            }
+
+            @* // Function to get Monday of the week for a given date
+            function getMondayOfWeek(date) {
+                var day = date.getDay() || 7; // Get current day number, converting Sunday from 0 to 7
+                if (day !== 1) { // If not Monday
+                    date.setHours(-24 * (day - 1)); // Set to Monday
+                }
+                return date;
+            }
+
+            // Function to get Sunday of the week for a given date
+            function getSundayOfWeek(mondayDate) {
+                var sunday = new Date(mondayDate);
+                sunday.setDate(mondayDate.getDate() + 6);
+                return sunday;
+            }
+
+            // Set current shift type based on existing times
+                        // Set week dates when start date changes
+            $('#StartDate').on('change', function() {
+                var selectedDate = new Date($(this).val());
+                var monday = getMondayOfWeek(new Date(selectedDate));
+                var sunday = getSundayOfWeek(monday);
+                
+                // Set the dates
+                $('#StartDate').val(monday.toISOString().split('T')[0]);
+                $('#EndDate').val(sunday.toISOString().split('T')[0]);
+            });
+
+
+            // Initialize form with existing data
+            // Set proper week dates based on current start date
+            var currentStartDate = $('#StartDate').val();
+            if (currentStartDate) {
+                var selectedDate = new Date(currentStartDate);
+                var monday = getMondayOfWeek(new Date(selectedDate));
+                var sunday = getSundayOfWeek(monday);
+                
+                $('#StartDate').val(monday.toISOString().split('T')[0]);
+                $('#EndDate').val(sunday.toISOString().split('T')[0]);
+            }
+
+            // Validation before submit
+            $('form').on('submit', function(e) {
+                var userId = $('#UserId').val();
+                var startDate = $('#StartDate').val();
+                var shiftType = $('#shiftType').val();
+                
+                if (!userId) {
+                    alert('Please select a user');
+                    e.preventDefault();
+                    return false;
+                }
+                
+                if (!startDate) {
+                    alert('Please select a start date');
+                    e.preventDefault();
+                    return false;
+                }
+                
+                if (!shiftType) {
+                    alert('Please select a shift type');
+                    e.preventDefault();
+                    return false;
+                }
+                
+                return true;
+            }); *@
+        });
+    </script>
+}

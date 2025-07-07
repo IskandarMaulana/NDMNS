@@ -1,0 +1,109 @@
+@model NDMNS.Models.Helpdesk
+@{
+    ViewData["Title"] = "Add Helpdesk";
+    ViewData["Breadcrumb"] = "<li class='breadcrumb-item'><a href='#'>Home</a></li><li class='breadcrumb-item'><a href='#'>Master Data</a></li><li class='breadcrumb-item'><a asp-controller='Helpdesk' asp-action='Index'>Helpdesk</a></li><li class='breadcrumb-item active'>Add</li>";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="clearfix"></div>
+
+<div class="col-sm-12">
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label">Name <span class="text-danger">*</span></label>
+                    <input asp-for="Name" class="form-control name-input" placeholder="Enter Helpdesk name" minlength="2" maxlength="100"/>
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="IspId" class="form-label">ISP <span class="text-danger">*</span></label>
+                    <select asp-for="IspId" class="form-select">
+                        <option value="" selected disabled>-- Choose ISP --</option>
+                        @if (ViewBag.Isps != null)
+                        {
+                            @foreach (var isp in ViewBag.Isps)
+                            {
+                                <option value="@isp.Id">@(isp.Name ?? "Unknown ISP")</option>
+                            }
+                        }
+                    </select>
+                    <span asp-validation-for="IspId" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="Role" class="form-label">Role <span class="text-danger">*</span></label>
+                    <select asp-for="Role" class="form-select">
+                        <option value="" selected disabled>-- Choose Role --</option>
+                        <option value="1">Customer Account</option>
+                        <option value="2">Supervisor</option>
+                        <option value="3">Manager Customer</option>
+                        <option value="4">General Manager</option>
+                    </select>
+                    <span asp-validation-for="Role" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="WhatsappNumber" class="form-label">WhatsApp <span class="text-danger">*</span></label>
+                    <input asp-for="WhatsappNumber" class="form-control phone-input" placeholder="Enter WhatsApp or phone number" minlength="12" maxlength="15"/>
+                    <span asp-validation-for="WhatsappNumber" class="text-danger"></span>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="EmailAddress" class="form-label">Email <span class="text-danger">*</span></label>
+                    <input asp-for="EmailAddress" class="form-control email-input" type="email" placeholder="Enter email" />
+                    <span asp-validation-for="EmailAddress" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="d-flex justify-content-between">
+                    <a asp-controller="Helpdesk" asp-action="Index" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </a>
+                    @if (ViewBag.IsNOC == true || ViewBag.IsTeamLeader == true)
+                    {
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Save
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            setTimeout(function() {
+                $('.alert').fadeOut('slow');
+            }, 5000);
+        });
+    </script>
+}
